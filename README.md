@@ -88,7 +88,7 @@ If you have a suggestion that would make this better, please fork the repo and c
 
 We use [Semantic Versioning](http://semver.org/) for versioning. For the versions
 available, see the [tags on this
-repository](https://github.com/PurpleBooth/a-good-readme-template/tags).
+repository](https://github.com/omerfdmrl/alemdar/tags).
 
 ## Authors
 
