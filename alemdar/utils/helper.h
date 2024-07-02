@@ -8,8 +8,8 @@ ALEMDAR_DEF void print_progress_footer(time_t timer, float cost);
 int oldProgress = -1;
 
 void print_progress_header(size_t epoch, size_t total_epochs, float cost) {
-    printf("----------------------------------------------------------------------------------------------------------------------\n");
-    printf("\nEpoch %zu/%zu - Cost = %.12f\n", epoch + 1, total_epochs, cost);
+    printf("\n----------------------------------------------------------------------------------------------------------------------\n");
+    printf("Epoch %zu/%zu - Cost = %.12f\n", epoch + 1, total_epochs, cost);
     printf("----------------------------------------------------------------------------------------------------------------------\n");
 }
 
@@ -34,7 +34,8 @@ void print_progress(size_t count, size_t max, float cost) {
 
 void print_progress_footer(time_t timer, float cost) {
     double time_taken = ((double)timer)/CLOCKS_PER_SEC;
-    printf("\nTime Taken = %f - Cost = %.12f\n", time_taken, cost);
+    printf("\n\n----------------------------------------------------------------------------------------------------------------------\n");
+    printf("Time Taken = %f - Cost = %.12f\n", time_taken, cost);
     printf("----------------------------------------------------------------------------------------------------------------------\n");
 }
 
