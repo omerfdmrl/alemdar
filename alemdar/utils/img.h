@@ -9,14 +9,49 @@
 #include <sys/types.h>
 #include <dirent.h>
 
-ALEMDAR_DEF Matrix img_read_png(FILE *fp);
-ALEMDAR_DEF Matrix img_read_jpg(FILE *fp);
-ALEMDAR_DEF Matrix img_read(const char *imageName);
-ALEMDAR_DEF Matrix *imgs_read(const char *folderPath, size_t count);
-ALEMDAR_DEF Matrix img_resize(Matrix img, size_t width, size_t height);
-ALEMDAR_DEF Matrix *imgs_resize(Matrix *imgs, size_t count, size_t width, size_t height);
+typedef struct {
+    size_t width;
+    size_t height;
+    Matrix data;
+} Img;
 
-Matrix img_read_png(FILE *fp) {
+ALEMDAR_DEF Img img_alloc(size_t width, size_t height);
+ALEMDAR_DEF void img_free(Img img);
+ALEMDAR_DEF Img img_read_png(FILE *fp);
+ALEMDAR_DEF Img img_read_jpg(FILE *fp);
+ALEMDAR_DEF Img img_read(const char *imageName);
+ALEMDAR_DEF Img *imgs_read(const char *folderPath, size_t count);
+ALEMDAR_DEF Img img_resize(Img img, size_t width, size_t height);
+ALEMDAR_DEF Img *imgs_resize(Img *imgs, size_t count, size_t width, size_t height);
+
+Img img_alloc(size_t width, size_t height) {
+    Img img;
+    img.width = width;
+    img.height = height;
+    img.data = matrix_alloc(height * width, 4);
+    return img;
+}
+
+void img_free(Img img) {
+    matrix_free(img.data);
+}
+
+void img_print(Img img) {
+    printf("width: %zu, height: %zu\n", img.width, img.height);
+    for (size_t i = 0; i < img.height; i++) {
+        for (size_t j = 0; j < img.width; j++) {
+            size_t index = i * img.width + j;
+            printf("(%3.0f, %3.0f, %3.0f, %3.0f) ", 
+                   img.data.data[index][0], 
+                   img.data.data[index][1], 
+                   img.data.data[index][2], 
+                   img.data.data[index][3]);
+        }
+        printf("\n");
+    }
+}
+
+Img img_read_png(FILE *fp) {
     int width, height;
     png_byte color_type;
     png_byte bit_depth;
@@ -73,7 +108,7 @@ Matrix img_read_png(FILE *fp) {
 
     png_destroy_read_struct(&png, &info, NULL);
 
-    Matrix output = matrix_alloc(height * width, 4);
+    Img output = img_alloc(width, height);
     for (int i = 0; i < height; i++)
     {
         png_bytep row = row_pointers[i];
@@ -81,15 +116,15 @@ Matrix img_read_png(FILE *fp) {
         {
             png_bytep px = &(row[j * 4]);
             size_t index = i * width + j;
-            output.data[index][0] = px[0];
-            output.data[index][1] = px[1];
-            output.data[index][2] = px[2];
-            output.data[index][3] = px[3];
+            output.data.data[index][0] = px[0];
+            output.data.data[index][1] = px[1];
+            output.data.data[index][2] = px[2];
+            output.data.data[index][3] = px[3];
         }
     }
     return output;
 }
-Matrix img_read_jpg(FILE *fp) {
+Img img_read_jpg(FILE *fp) {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
     JSAMPARRAY buffer;
@@ -104,15 +139,15 @@ Matrix img_read_jpg(FILE *fp) {
     row_stride = cinfo.output_width * cinfo.output_components;
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
 
-    Matrix output = matrix_alloc(cinfo.output_width * cinfo.output_height, 4);
+    Img output = img_alloc(cinfo.output_width, cinfo.output_height);
     int index = 0;
     while (cinfo.output_scanline < cinfo.output_height) {
         jpeg_read_scanlines(&cinfo, buffer, 1);
         for (int i = 0; i < cinfo.output_width; i++) {
-            output.data[index][0] = buffer[0][i * cinfo.output_components];
-            output.data[index][1] = buffer[0][i * cinfo.output_components + 1];
-            output.data[index][2] = buffer[0][i * cinfo.output_components + 2];
-            output.data[index][3] = 255;
+            output.data.data[index][0] = buffer[0][i * cinfo.output_components];
+            output.data.data[index][1] = buffer[0][i * cinfo.output_components + 1];
+            output.data.data[index][2] = buffer[0][i * cinfo.output_components + 2];
+            output.data.data[index][3] = 255;
             index++;
         }
     }
@@ -124,7 +159,7 @@ Matrix img_read_jpg(FILE *fp) {
     return output;
 }
 
-Matrix img_read(const char *imageName) {
+Img img_read(const char *imageName) {
     const char *extension = strrchr(imageName, '.');
     ALEMDAR_ASSERT(extension != NULL);
     ALEMDAR_ASSERT(extension != imageName);
@@ -132,7 +167,7 @@ Matrix img_read(const char *imageName) {
     FILE *fp = fopen(imageName, "rb");
     ALEMDAR_ASSERT(fp != NULL);
     
-    Matrix output;
+    Img output;
 
     if(strcmp(extension, ".png") == 0) {
         output = img_read_png(fp);
@@ -142,7 +177,7 @@ Matrix img_read(const char *imageName) {
     
     return output;
 }
-Matrix *imgs_read(const char *folderPath, size_t count) {
+Img *imgs_read(const char *folderPath, size_t count) {
     DIR *dir;
     struct dirent *entry;
     size_t file_count = 0;
@@ -156,7 +191,7 @@ Matrix *imgs_read(const char *folderPath, size_t count) {
         }
     }
     ALEMDAR_ASSERT(file_count > count);
-    Matrix *output = ALEMDAR_MALLOC(sizeof(Matrix) * count);
+    Img *output = ALEMDAR_MALLOC(sizeof(Img) * count);
     size_t i = 0;
     rewinddir(dir);
     while ((entry = readdir(dir)) != NULL) {
@@ -170,19 +205,19 @@ Matrix *imgs_read(const char *folderPath, size_t count) {
     }
     return output;
 }
-Matrix img_resize(Matrix img, size_t width, size_t height) {
-    Matrix output = matrix_alloc(height * width, 4);
+Img img_resize(Img img, size_t width, size_t height) {
+    Img output = img_alloc(height, width);
     for (size_t i = 0; i < height; i++)
     {
         for (size_t j = 0; j < width; j++)
         {
-            output.data[i * width + j] = img.data[(i * img.cols / width) * img.cols + (j * img.rows / height)];
+            output.data.data[i * width + j] = img.data.data[(i * img.width / width) * img.width + (j * img.height / height)];
         }
     }
     return output;
 }
-Matrix *imgs_resize(Matrix *imgs, size_t count, size_t width, size_t height) {
-    Matrix *output = ALEMDAR_MALLOC(sizeof(Matrix) * count);
+Img *imgs_resize(Img *imgs, size_t count, size_t width, size_t height) {
+    Img *output = ALEMDAR_MALLOC(sizeof(Img) * count);
     for (size_t i = 0; i < count; i++)
     {
         output[i] = img_resize(imgs[i], 10, 10);
