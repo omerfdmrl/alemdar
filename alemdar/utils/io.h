@@ -149,9 +149,9 @@ Model import_model(const char *fileName) {
                     w++;
                 }
             }
-        }else if(strcmp(op_type[i], "MaxPooling2D") == 0) {
+        }else if(strcmp(op_type[i], "MaxPooling1D") == 0) {
             isLayer = true;
-            layer = layer_max_pooling_2d(inputs[i],param_values[i][0]);
+            layer = layer_max_pooling_1d(inputs[i],param_values[i][0]);
         }
         if(isLayer) model_add(&model, layer);
     }
