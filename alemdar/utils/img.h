@@ -14,6 +14,13 @@ typedef struct {
     size_t height;
     Matrix data;
 } Img;
+typedef struct Imgs Imgs;
+struct Imgs {
+    char **paths;
+    size_t limit;
+    size_t currentImg;
+    size_t size;
+};
 
 ALEMDAR_DEF Img img_alloc(size_t width, size_t height);
 ALEMDAR_DEF void img_free(Img img);
@@ -23,6 +30,71 @@ ALEMDAR_DEF Img img_read(const char *imageName);
 ALEMDAR_DEF Img *imgs_read(const char *folderPath, size_t count);
 ALEMDAR_DEF Img img_resize(Img img, size_t width, size_t height);
 ALEMDAR_DEF Img *imgs_resize(Img *imgs, size_t count, size_t width, size_t height);
+
+Imgs imgs_alloc(const char *folderPath) {
+    Imgs imgs;
+    imgs.currentImg = 0;
+    imgs.limit = 0;
+
+    DIR *dir = opendir(folderPath);
+    if (dir == NULL) {
+        perror("Klasör açılamadı");
+        imgs.paths = NULL;
+        return imgs;
+    }
+
+    struct dirent *entry;
+    size_t pathCount = 0;
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            pathCount++;
+        }
+    }
+
+    imgs.paths = malloc(pathCount * sizeof(char *));
+    if (!imgs.paths) {
+        perror("Dosya yolları için bellek ayrılamadı");
+        closedir(dir);
+        return imgs;
+    }
+
+    imgs.size = pathCount;
+
+    rewinddir(dir);
+    size_t index = 0;
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            imgs.paths[index] = malloc(strlen(folderPath) + strlen(entry->d_name) + 2);
+            if (imgs.paths[index]) {
+                snprintf(imgs.paths[index], strlen(folderPath) + strlen(entry->d_name) + 2, "%s/%s", folderPath, entry->d_name);
+                index++;
+            }
+        }
+    }
+
+    imgs.limit = pathCount;
+    closedir(dir);
+    return imgs;
+}
+
+void imgs_free(Imgs *imgs) {
+    if (imgs->paths) {
+        for (size_t i = 0; i < imgs->limit; i++) {
+            free(imgs->paths[i]);
+        }
+        free(imgs->paths);
+    }
+}
+
+Img imgs_get(Imgs *imgs) {
+    if (imgs->currentImg >= imgs->limit) {
+        imgs->currentImg = 0;
+    }
+    const char *currentPath = imgs->paths[imgs->currentImg];
+    imgs->currentImg++;
+    return img_read(currentPath);
+}
+
 
 Img img_alloc(size_t width, size_t height) {
     Img img;
@@ -122,6 +194,10 @@ Img img_read_png(FILE *fp) {
             output.data.data[index][3] = px[3];
         }
     }
+    for(int y = 0; y < height; y++) {
+        free(row_pointers[y]);
+    }
+    free(row_pointers);
     return output;
 }
 Img img_read_jpg(FILE *fp) {
@@ -158,7 +234,6 @@ Img img_read_jpg(FILE *fp) {
 
     return output;
 }
-
 Img img_read(const char *imageName) {
     const char *extension = strrchr(imageName, '.');
     ALEMDAR_ASSERT(extension != NULL);
@@ -196,10 +271,13 @@ Img *imgs_read(const char *folderPath, size_t count) {
     rewinddir(dir);
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-            char fullPath[256];
-            snprintf(fullPath,sizeof(fullPath), "%s%s", folderPath, entry->d_name);
-            output[i] = img_read(fullPath);
-            i++;
+            const char *extension = strrchr(entry->d_name, '.');
+            if(strcmp(extension, ".png") == 0 || strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg") == 0) {
+                char fullPath[256];
+                snprintf(fullPath,sizeof(fullPath), "%s%s", folderPath, entry->d_name);
+                output[i] = img_read(fullPath);
+                i++;
+            }
         }
         if(count == i) break;
     }
@@ -207,11 +285,14 @@ Img *imgs_read(const char *folderPath, size_t count) {
 }
 Img img_resize(Img img, size_t width, size_t height) {
     Img output = img_alloc(height, width);
-    for (size_t i = 0; i < height; i++)
-    {
-        for (size_t j = 0; j < width; j++)
-        {
-            output.data.data[i * width + j] = img.data.data[(i * img.width / width) * img.width + (j * img.height / height)];
+    float scale_x = (float)img.width / width;
+    float scale_y = (float)img.height / height;
+
+    for (size_t i = 0; i < height; i++) {
+        for (size_t j = 0; j < width; j++) {
+            size_t orig_x = (size_t)(j * scale_x);
+            size_t orig_y = (size_t)(i * scale_y);
+            output.data.data[i * width + j] = img.data.data[orig_y * img.width + orig_x];
         }
     }
     return output;
@@ -220,7 +301,37 @@ Img *imgs_resize(Img *imgs, size_t count, size_t width, size_t height) {
     Img *output = ALEMDAR_MALLOC(sizeof(Img) * count);
     for (size_t i = 0; i < count; i++)
     {
-        output[i] = img_resize(imgs[i], 10, 10);
+        output[i] = img_resize(imgs[i], width, height);
+    }
+    return output;
+}
+
+Vec img_to_vec(Img img) {
+    Vec output = vec_alloc(img.width * img.height * img.data.cols);
+    size_t index = 0;
+    for (size_t i = 0; i < img.height; i++) {
+        for (size_t j = 0; j < img.width; j++) {
+            for (size_t k = 0; k < img.data.cols; k++) {
+                output.data[index++] = img.data.data[i][j * img.data.cols + k];
+            }
+        }
+    }
+    return output;
+}
+
+Matrix imgs_to_matrix(Img *imgs, size_t count) {
+    Matrix output = matrix_alloc(count, imgs[0].width * imgs[0].height * imgs[0].data.cols);
+    for (size_t c = 0; c < count; c++)
+    {
+        size_t index = 0;
+        Img img = imgs[c];
+        for (size_t i = 0; i < img.height; i++) {
+            for (size_t j = 0; j < img.width; j++) {
+                for (size_t k = 0; k < img.data.cols; k++) {
+                    output.data[c][index++] = img.data.data[i][j * img.data.cols + k];
+                }
+            }
+        }
     }
     return output;
 }

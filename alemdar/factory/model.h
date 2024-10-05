@@ -2,11 +2,12 @@
 
 #define ALEMDAR_MODEL_H
 
-typedef struct
+typedef struct Model Model;
+struct Model
 {
 	size_t layer_count;
 	Layer *layers;
-} Model;
+};
 
 typedef enum
 {
@@ -155,6 +156,50 @@ void model_learn(ModelOptimizers optimizer, Model model, size_t epoch, Matrix in
 	va_end(args);
 	printf("\n");
 }
+void model_learn_imgs(ModelOptimizers optimizer, Model model, size_t epoch, Imgs imgs, Matrix outputs, ...) {
+	void (*optimizerFunction)(Model model, Matrix inputs, Matrix outputs, va_list args);
+	va_list args;
+	va_list cpyargs;
+	va_start(args, outputs);
+	switch (optimizer)
+	{
+		case FiniteDiff:
+			optimizerFunction = model_learn_finite_diff;
+			break;
+
+		case BatchGradientDescent:
+			optimizerFunction = model_learn_batch_gradient_descent;
+			break;
+	}
+	clock_t timer = clock();
+	Img img_first = imgs_get(&imgs);
+	Vec img_first_vec = img_to_vec(img_first);
+	Matrix img_first_m = matrix_alloc(1, img_first_vec.size);
+	imgs.currentImg = 0;
+	for (size_t e = 0; e < epoch; e++)
+	{
+		print_progress_header(e,epoch, model_cost(model, img_first_m.data[0], outputs.data[0]));
+		for (size_t S = 0; S < imgs.size; S++)
+		{
+			Img img = imgs_get(&imgs);
+			Vec img_vec = img_to_vec(img);
+			Matrix img_m = matrix_alloc(1, img_vec.size);
+			for (size_t i = 0; i < img_vec.size; i++)
+			{
+				img_m.data[0][i] = img_vec.data[i];
+			}
+			
+			va_copy(cpyargs, args);
+			optimizerFunction(model, img_m, outputs, cpyargs);
+			va_end(cpyargs);
+		}
+		
+	}
+	timer = clock() - timer;
+	print_progress_footer(timer, model_cost(model, img_first_m.data[0], outputs.data[0]));
+	va_end(args);
+	printf("\n");
+}
 void model_print(Model model) {
 	printf("%-20s%-20s%-20s\n", "Layer", "Shape", "Param");
 	printf("=================================================\n");
@@ -163,11 +208,6 @@ void model_print(Model model) {
 		layer_print(model.layers[i]);
 	}
 	printf("=================================================\n");
-	/* printf("Input Values [ ");
-	vec_print(model.layers[0].input);
-	printf("]\nOutput Values [ ");
-	vec_print(model.layers[model.layer_count - 1].output);
-	printf("]\n"); */
 }
 void model_free(Model model) {
 	for (size_t i = 0; i < model.layer_count; i++)
