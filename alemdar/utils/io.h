@@ -160,7 +160,7 @@ Model import_model(const char *fileName) {
             layer = layer_min_pooling(inputs[i],param_values[i][0]);
         }else if(strcmp(op_type[i], "Conv") == 0) {
             isLayer = true;
-            layer = layer_conv(inputs[i],param_values[i][0]);
+            layer = layer_conv(inputs[i],param_values[i][0], param_values[i][1], param_values[i][2], param_values[i][3], param_values[i][4],param_values[i][5]);
         }
         if(isLayer) model_add(&model, layer);
     }
