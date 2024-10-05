@@ -1,26 +1,27 @@
 .DEFAULT_GOAL := run
 INCLUDES := ./alemdar/includes/
-CFLAGS = -Wall -Werror -lpng -ljpeg -lm
+CFLAGS := -Wall -Werror -I$(INCLUDES) `sdl2-config --cflags`
+LDFLAGS := `sdl2-config --libs` -lpng -ljpeg -lm
 
 SOURCE := main.c
 
 run:
-	@gcc -I $(INCLUDES) $(SOURCE) $(CFLAGS) && ./a.out
+	@gcc $(SOURCE) $(CFLAGS) $(LDFLAGS) -o program && ./program
 
 time:
-	@if [ -e "a.out" ]; then time ./a.out > /dev/null; fi
+	@if [ -e "program" ]; then time ./program > /dev/null; fi
 
 test:
-	@gcc -g $(SOURCE) $(CFLAGS) -o bin && gdb bin
+	@gcc -g $(SOURCE) $(CFLAGS) $(LDFLAGS) -o bin && gdb bin
 
 memcheck:
-	@valgrind --tool=memcheck --leak-check=full ./a.out
+	@valgrind --tool=memcheck --leak-check=full ./program
 
 debug:
-	@gcc -g $(SOURCE) $(CFLAGS) -o program
+	@gcc -g $(SOURCE) $(CFLAGS) $(LDFLAGS) -o program
 
 docker:
 	@sudo docker build -t alemdar-app . && sudo docker run alemdar-app
 
 clear:
-	@rm -f a.out bin program && clear
+	@rm -f program bin && clear
