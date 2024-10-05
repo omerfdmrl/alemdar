@@ -38,77 +38,48 @@ void model_learn_batch_gradient_descent(Model model, Matrix inputs, Matrix outpu
                     break;
                 }
             }
-            if(layer.name == Dense) {
-                if(first) {
-                    for (size_t j = 0; j < layer.output.size; j++)
-                    {
-                        delta[l][j] = (output[j] - parsed[j]) * layer.output.data[j];
-                    }
-                    first = false;
-                }else {
-                    for (size_t j = 0; j < layer.outputSize; j++)
-                    {
-                        delta[l][j] = 0.0;
-                        for (size_t k = 0; k < prevLayer.outputSize; k++)  
-                        {
-                            delta[l][j] += prevDelta[k] * prevLayer.weight.data[j][k];
-                        }
-                        delta[l][j] *= layer.output.data[j];
-                    }
-                }
-                for (size_t j = 0; j < layer.inputSize; j++)
+            if(first) {
+                for (size_t j = 0; j < layer.output.size; j++)
                 {
-                    for (size_t k = 0; k < layer.outputSize; k++)
-                    {
-                        float dw = rate * delta[l][k] * layer.input.data[j];
-                        layer.weight.data[j][k] += dw;
-                    }
+                    delta[l][j] = (output[j] - parsed[j]) * layer.output.data[j];
                 }
+                first = false;
+            }else {
                 for (size_t j = 0; j < layer.outputSize; j++)
                 {
-                    float db = delta[l][j] * rate;
-                    layer.bias.data[j] += db;
-                }
-            }else if(layer.name == RNN || layer.name == GRU) {
-                if(first) {
-                    for (size_t j = 0; j < layer.output.size; j++)
+                    delta[l][j] = 0.0;
+                    for (size_t k = 0; k < prevLayer.outputSize; k++)  
                     {
-                        delta[l][j] = (output[j] - parsed[j]) * layer.output.data[j];
+                        delta[l][j] += prevDelta[k] * prevLayer.weight.data[k][j];
                     }
-                    first = false;
-                }else {
-                    for (size_t j = 0; j < layer.outputSize; j++)
-                    {
-                        delta[l][j] = 0.0;
-                        for (size_t k = 0; k < prevLayer.outputSize; k++)  
-                        {
-                            delta[l][j] += prevDelta[k] * prevLayer.weight.data[j][k];
-                        }
-                        delta[l][j] *= layer.output.data[j];
-                    }
-                }
-                for (size_t j = 0; j < layer.inputSize; j++)
-                {
-                    for (size_t k = 0; k < layer.outputSize; k++)
-                    {
-                        float dw = rate * delta[l][k] * layer.input.data[j];
-                        layer.weight.data[j][k] += dw;
-                    }
-                }
-                for (size_t j = 0; j < layer.outputSize; j++)
-                {
-                    float db = delta[l][j] * rate;
-                    layer.bias.data[j] += db;
-                    layer.weight.data[layer.inputSize][j] += db;
+                    delta[l][j] *= layer.output.data[j];
                 }
             }
+            for (size_t j = 0; j < layer.inputSize; j++)
+            {
+                for (size_t k = 0; k < layer.outputSize; k++)
+                {
+                    float dw = rate * delta[l][k] * layer.input.data[j];
+                    layer.weight.data[j][k] += dw;
+                }
+            }
+            for (size_t j = 0; j < layer.outputSize; j++)
+            {
+                float db = delta[l][j] * rate;
+                layer.bias.data[j] += db;
+            }
+            
         }
         for (size_t l = 0; l < model.layer_count - 1; l++)
         {
-            ALEMDAR_FREE(delta[l]);
+            if (delta[l] != NULL) {
+                ALEMDAR_FREE(delta[l]);
+            }
         }
         ALEMDAR_FREE(delta);
-        print_progress(i, inputs.rows, model_cost(model, inputs.data[i], outputs.data[i]));
+        printf("%zu \n", inputs.rows);
+        if(inputs.rows != 1) 
+            print_progress(i, inputs.rows, model_cost(model, inputs.data[i], outputs.data[i]));
     }
 }
 
