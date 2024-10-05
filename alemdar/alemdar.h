@@ -57,6 +57,8 @@ typedef enum {
 
 #include "./utils/img.h"
 
+#include "./utils/asdl.h"
+
 #include "./utils/conv.h"
 
 #include "./factory/layer.h"
