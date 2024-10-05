@@ -1,4 +1,6 @@
-// Disable assertions by commenting out the below line.
+#ifndef ALEMDAR_ASSERT_H
+
+#define ALEMDAR_ASSERT_H
 
 ALEMDAR_DEF void report_assertion_failure(const char* expression, const char* message, const char* file, int line);
 
@@ -23,3 +25,5 @@ ALEMDAR_DEF void report_assertion_failure(const char* expression, const char* me
 void report_assertion_failure(const char* expression, const char* message, const char* file, int line) {
     ALEMDAR_LOG(LOG_LEVEL_FATAL, "Assertion Failure: %s, message: '%s', in file: %s, line: %d\n", expression, message, file, line);
 }
+
+#endif // !ALEMDAR_ASSERT_H

@@ -20,11 +20,6 @@
 #define ALEMDAR_FREE free
 #endif // !ALEMDAR_FREE
 
-#ifndef ALEMDAR_ASSERT
-#include <assert.h>
-#define ALEMDAR_ASSERT assert
-#endif // !ALEMDAR_ASSERT
-
 #ifndef ALEMDAR_DEF
 #define ALEMDAR_DEF static inline
 #endif // !ALEMDAR_DEF

@@ -1,3 +1,7 @@
+#ifndef ALEMDAR_LOGGER_H
+
+#define ALEMDAR_LOGGER_H
+
 #define LOG_WARN_ENABLED 1
 #define LOG_INFO_ENABLED 1
 #define LOG_DEBUG_ENABLED 1
@@ -60,3 +64,5 @@ void ALEMDAR_LOG(LogLevels level, const char* message, ...) {
     // TODO: platform-specific output.
     printf("%s", out_message2);
 }
+
+#endif // !ALEMDAR_LOGGER_H
