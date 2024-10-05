@@ -37,6 +37,10 @@ typedef enum {
     true
 } bool;
 
+#include "./utils/logger.h"
+
+#include "./utils/assert.h"
+
 #include "./utils/helper.h"
 
 #include "./utils/random.h"
