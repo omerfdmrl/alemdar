@@ -9,9 +9,10 @@ typedef enum {
 	Activation,
 	Dropout,
 	Shuffle,
-	MaxPooling1D,
-	MinPooling1D,
-	MeanPooling1D,
+	MaxPooling,
+	MinPooling,
+	MeanPooling,
+	Conv,
 	Flatten
 } LayerNames;
 static const char* LayerNamesChar[] = {
@@ -21,9 +22,10 @@ static const char* LayerNamesChar[] = {
 	[Activation] = "Activation",
 	[Dropout] = "Dropout",
 	[Shuffle] = "Shuffle",
-	[MaxPooling1D] = "MaxPooling1D",
-	[MinPooling1D] = "MinPooling1D",
-	[MeanPooling1D] = "MeanPooling1D",
+	[MaxPooling] = "MaxPooling",
+	[MinPooling] = "MinPooling",
+	[MeanPooling] = "MeanPooling",
+	[Conv] = "Conv",
 	[Flatten] = "Flatten"
 };
 
@@ -48,9 +50,10 @@ struct Layer {
 #include "./layers/activation.h"
 #include "./layers/dropout.h"
 #include "./layers/shuffle.h"
-#include "./layers/max_pooling_1d.h"
-#include "./layers/min_pooling_1d.h"
-#include "./layers/mean_pooling_1d.h"
+#include "./layers/max_pooling.h"
+#include "./layers/min_pooling.h"
+#include "./layers/mean_pooling.h"
+#include "./layers/conv.h"
 #include "./layers/flatten.h"
 
 ALEMDAR_DEF void layer_print(Layer layer);

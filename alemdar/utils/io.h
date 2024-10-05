@@ -149,9 +149,18 @@ Model import_model(const char *fileName) {
                     w++;
                 }
             }
-        }else if(strcmp(op_type[i], "MaxPooling1D") == 0) {
+        }else if(strcmp(op_type[i], "MaxPooling") == 0) {
             isLayer = true;
-            layer = layer_max_pooling_1d(inputs[i],param_values[i][0]);
+            layer = layer_max_pooling(inputs[i],param_values[i][0]);
+        }else if(strcmp(op_type[i], "MenaPooling") == 0) {
+            isLayer = true;
+            layer = layer_mean_pooling(inputs[i],param_values[i][0]);
+        }else if(strcmp(op_type[i], "MinPooling") == 0) {
+            isLayer = true;
+            layer = layer_min_pooling(inputs[i],param_values[i][0]);
+        }else if(strcmp(op_type[i], "Conv") == 0) {
+            isLayer = true;
+            layer = layer_conv(inputs[i],param_values[i][0]);
         }
         if(isLayer) model_add(&model, layer);
     }
