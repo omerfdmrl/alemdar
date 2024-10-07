@@ -37,6 +37,7 @@ struct Imgs {
     size_t limit;
     size_t currentImg;
     size_t size;
+    ImgTypes type;
 };
 
 ALEMDAR_DEF Img img_alloc(size_t width, size_t height, ImgTypes type);
@@ -48,10 +49,11 @@ ALEMDAR_DEF Img *imgs_read(const char *folderPath, size_t count, ImgTypes type);
 ALEMDAR_DEF Img img_resize(Img img, size_t width, size_t height);
 ALEMDAR_DEF Img *imgs_resize(Img *imgs, size_t count, size_t width, size_t height);
 
-Imgs imgs_alloc(const char *folderPath) {
+Imgs imgs_alloc(const char *folderPath, ImgTypes type) {
     Imgs imgs;
     imgs.currentImg = 0;
     imgs.limit = 0;
+    imgs.type = type;
 
     DIR *dir = opendir(folderPath);
     if (dir == NULL) {
@@ -109,7 +111,7 @@ Img imgs_get(Imgs *imgs) {
     }
     const char *currentPath = imgs->paths[imgs->currentImg];
     imgs->currentImg++;
-    return img_read(currentPath, RGBA);
+    return img_read(currentPath, imgs->type);
 }
 
 
