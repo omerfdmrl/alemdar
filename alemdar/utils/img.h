@@ -9,9 +9,26 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+typedef enum {
+    RGBA,
+    RGB,
+    GRAY
+} ImgTypes;
+static const char* ImgTypesChar[] = {
+	[RGBA] = "RGBA",
+	[RGB] = "RGB",
+	[GRAY] = "GRAY",
+};
+static const int ImgTypesSize[] = {
+    [RGBA] = 4,
+    [RGB] = 3,
+    [GRAY] = 1,
+};
+
 typedef struct {
     size_t width;
     size_t height;
+    ImgTypes type;
     Matrix data;
 } Img;
 typedef struct Imgs Imgs;
@@ -22,12 +39,12 @@ struct Imgs {
     size_t size;
 };
 
-ALEMDAR_DEF Img img_alloc(size_t width, size_t height);
+ALEMDAR_DEF Img img_alloc(size_t width, size_t height, ImgTypes type);
 ALEMDAR_DEF void img_free(Img img);
-ALEMDAR_DEF Img img_read_png(FILE *fp);
-ALEMDAR_DEF Img img_read_jpg(FILE *fp);
-ALEMDAR_DEF Img img_read(const char *imageName);
-ALEMDAR_DEF Img *imgs_read(const char *folderPath, size_t count);
+ALEMDAR_DEF Img img_read_png(FILE *fp, ImgTypes type);
+ALEMDAR_DEF Img img_read_jpg(FILE *fp, ImgTypes type);
+ALEMDAR_DEF Img img_read(const char *imageName, ImgTypes type);
+ALEMDAR_DEF Img *imgs_read(const char *folderPath, size_t count, ImgTypes type);
 ALEMDAR_DEF Img img_resize(Img img, size_t width, size_t height);
 ALEMDAR_DEF Img *imgs_resize(Img *imgs, size_t count, size_t width, size_t height);
 
@@ -92,15 +109,16 @@ Img imgs_get(Imgs *imgs) {
     }
     const char *currentPath = imgs->paths[imgs->currentImg];
     imgs->currentImg++;
-    return img_read(currentPath);
+    return img_read(currentPath, RGBA);
 }
 
 
-Img img_alloc(size_t width, size_t height) {
+Img img_alloc(size_t width, size_t height, ImgTypes type) {
     Img img;
     img.width = width;
     img.height = height;
-    img.data = matrix_alloc(height * width, 4);
+    img.type = type;
+    img.data = matrix_alloc(height * width, ImgTypesSize[type]);
     return img;
 }
 
@@ -109,21 +127,31 @@ void img_free(Img img) {
 }
 
 void img_print(Img img) {
-    printf("width: %zu, height: %zu\n", img.width, img.height);
+    printf("type: %s, width: %zu, height: %zu\n", ImgTypesChar[img.type], img.width, img.height);
     for (size_t i = 0; i < img.height; i++) {
         for (size_t j = 0; j < img.width; j++) {
             size_t index = i * img.width + j;
-            printf("(%3.0f, %3.0f, %3.0f, %3.0f) ", 
+            if(img.type == RGBA) {
+                printf("(%3.0f, %3.0f, %3.0f, %3.0f) ", 
                    img.data.data[index][0], 
                    img.data.data[index][1], 
                    img.data.data[index][2], 
                    img.data.data[index][3]);
+            }else if(img.type == RGB) {
+                printf("(%3.0f, %3.0f, %3.0f) ", 
+                   img.data.data[index][0], 
+                   img.data.data[index][1], 
+                   img.data.data[index][2]);
+            }else if(img.type == GRAY) {
+                printf("(%3.0f) ", 
+                   img.data.data[index][0]);
+            }
         }
         printf("\n");
     }
 }
 
-Img img_read_png(FILE *fp) {
+Img img_read_png(FILE *fp, ImgTypes type) {
     int width, height;
     png_byte color_type;
     png_byte bit_depth;
@@ -180,7 +208,7 @@ Img img_read_png(FILE *fp) {
 
     png_destroy_read_struct(&png, &info, NULL);
 
-    Img output = img_alloc(width, height);
+    Img output = img_alloc(width, height, type);
     for (int i = 0; i < height; i++)
     {
         png_bytep row = row_pointers[i];
@@ -188,10 +216,18 @@ Img img_read_png(FILE *fp) {
         {
             png_bytep px = &(row[j * 4]);
             size_t index = i * width + j;
-            output.data.data[index][0] = px[0];
-            output.data.data[index][1] = px[1];
-            output.data.data[index][2] = px[2];
-            output.data.data[index][3] = px[3];
+            if(type == RGBA) {
+                output.data.data[index][0] = px[0];
+                output.data.data[index][1] = px[1];
+                output.data.data[index][2] = px[2];
+                output.data.data[index][3] = px[3];
+            }else if(type == RGB) {
+                output.data.data[index][0] = px[0];
+                output.data.data[index][1] = px[1];
+                output.data.data[index][2] = px[2];
+            }else if(type == GRAY) {
+                output.data.data[index][0] = px[0] * 0.229 + px[1] * 0.587 + px[2] * 0.114;
+            }
         }
     }
     for(int y = 0; y < height; y++) {
@@ -200,7 +236,7 @@ Img img_read_png(FILE *fp) {
     free(row_pointers);
     return output;
 }
-Img img_read_jpg(FILE *fp) {
+Img img_read_jpg(FILE *fp, ImgTypes type) {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
     JSAMPARRAY buffer;
@@ -215,15 +251,23 @@ Img img_read_jpg(FILE *fp) {
     row_stride = cinfo.output_width * cinfo.output_components;
     buffer = (*cinfo.mem->alloc_sarray)((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
 
-    Img output = img_alloc(cinfo.output_width, cinfo.output_height);
+    Img output = img_alloc(cinfo.output_width, cinfo.output_height, type);
     int index = 0;
     while (cinfo.output_scanline < cinfo.output_height) {
         jpeg_read_scanlines(&cinfo, buffer, 1);
         for (int i = 0; i < cinfo.output_width; i++) {
-            output.data.data[index][0] = buffer[0][i * cinfo.output_components];
-            output.data.data[index][1] = buffer[0][i * cinfo.output_components + 1];
-            output.data.data[index][2] = buffer[0][i * cinfo.output_components + 2];
-            output.data.data[index][3] = 255;
+            if(type == RGBA) {
+                output.data.data[index][0] = buffer[0][i * cinfo.output_components];
+                output.data.data[index][1] = buffer[0][i * cinfo.output_components + 1];
+                output.data.data[index][2] = buffer[0][i * cinfo.output_components + 2];
+                output.data.data[index][3] = 255;
+            }else if(type == RGB) {
+                output.data.data[index][0] = buffer[0][i * cinfo.output_components];
+                output.data.data[index][1] = buffer[0][i * cinfo.output_components + 1];
+                output.data.data[index][2] = buffer[0][i * cinfo.output_components + 2];
+            }else if(type == GRAY) {
+                output.data.data[index][0] = buffer[0][i * cinfo.output_components] * 0.229 + buffer[0][i * cinfo.output_components + 1] * 0.587 + buffer[0][i * cinfo.output_components + 2] * 0.114;
+            }
             index++;
         }
     }
@@ -234,7 +278,7 @@ Img img_read_jpg(FILE *fp) {
 
     return output;
 }
-Img img_read(const char *imageName) {
+Img img_read(const char *imageName, ImgTypes type) {
     const char *extension = strrchr(imageName, '.');
     ALEMDAR_ASSERT(extension != NULL);
     ALEMDAR_ASSERT(extension != imageName);
@@ -245,14 +289,14 @@ Img img_read(const char *imageName) {
     Img output;
 
     if(strcmp(extension, ".png") == 0) {
-        output = img_read_png(fp);
+        output = img_read_png(fp, type);
     }else if(strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg") == 0) {
-        output = img_read_jpg(fp);
+        output = img_read_jpg(fp, type);
     }
     
     return output;
 }
-Img *imgs_read(const char *folderPath, size_t count) {
+Img *imgs_read(const char *folderPath, size_t count, ImgTypes type) {
     DIR *dir;
     struct dirent *entry;
     size_t file_count = 0;
@@ -275,7 +319,7 @@ Img *imgs_read(const char *folderPath, size_t count) {
             if(strcmp(extension, ".png") == 0 || strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg") == 0) {
                 char fullPath[256];
                 snprintf(fullPath,sizeof(fullPath), "%s%s", folderPath, entry->d_name);
-                output[i] = img_read(fullPath);
+                output[i] = img_read(fullPath, type);
                 i++;
             }
         }
@@ -284,7 +328,7 @@ Img *imgs_read(const char *folderPath, size_t count) {
     return output;
 }
 Img img_resize(Img img, size_t width, size_t height) {
-    Img output = img_alloc(height, width);
+    Img output = img_alloc(height, width, img.type);
     float scale_x = (float)img.width / width;
     float scale_y = (float)img.height / height;
 

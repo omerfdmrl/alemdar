@@ -12,8 +12,6 @@ float CONV_BLUR[3][3] = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
 float CONV_SOBELX[3][3] = {{1, 0, -2}, {2, 0, -2}, {1, 0, 1}};
 float CONV_SOBELY[3][3] = {{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
 
-
-
 ALEMDAR_DEF Img img_conv(Img img, float kernel[3][3], size_t stride);
 ALEMDAR_DEF Img img_max_pool(Img img, size_t pool_size);
 ALEMDAR_DEF Img img_min_pool(Img img, size_t pool_size);
@@ -24,7 +22,7 @@ ALEMDAR_DEF Img img_conv(Img img, float kernel[3][3], size_t stride) {
     size_t new_width = (img.width - 3) / stride + 1;
     size_t new_height = (img.height - 3) / stride + 1;
 
-    Img output = img_alloc(new_width, new_height);
+    Img output = img_alloc(new_width, new_height, img.type);
 
     for (size_t i = 0; i < new_height; i++) {
         for (size_t j = 0; j < new_width; j++) {
@@ -44,6 +42,7 @@ ALEMDAR_DEF Img img_conv(Img img, float kernel[3][3], size_t stride) {
 
             size_t output_index = i * new_width + j;
             for (size_t channel = 0; channel < 4; channel++) {
+                // Apply the sum to the output image
                 output.data.data[output_index][channel] = sum[channel];
             }
         }
@@ -56,18 +55,22 @@ Img img_max_pool(Img img, size_t pool_size) {
     size_t new_width = img.width / pool_size;
     size_t new_height = img.height / pool_size;
     
-    Img output = img_alloc(new_width, new_height);
+    Img output = img_alloc(new_width, new_height, img.type);
+    size_t num_channels = ImgTypesSize[img.type];
     
     for (size_t i = 0; i < new_height; i++) {
         for (size_t j = 0; j < new_width; j++) {
-            float max_val[4] = {0, 0, 0, 0};
+            float max_val[num_channels];
+            for (size_t k = 0; k < num_channels; k++) {
+                max_val[k] = 0.0f;
+            }
             for (size_t ki = 0; ki < pool_size; ki++) {
                 for (size_t kj = 0; kj < pool_size; kj++) {
                     size_t img_x = j * pool_size + kj;
                     size_t img_y = i * pool_size + ki;
                     size_t index = img_y * img.width + img_x;
                     
-                    for (size_t channel = 0; channel < 4; channel++) {
+                    for (size_t channel = 0; channel < num_channels; channel++) {
                         if (img.data.data[index][channel] > max_val[channel]) {
                             max_val[channel] = img.data.data[index][channel];
                         }
@@ -76,7 +79,7 @@ Img img_max_pool(Img img, size_t pool_size) {
             }
             
             size_t output_index = i * new_width + j;
-            for (size_t channel = 0; channel < 4; channel++) {
+            for (size_t channel = 0; channel < num_channels; channel++) {
                 output.data.data[output_index][channel] = max_val[channel];
             }
         }
@@ -89,20 +92,23 @@ Img img_min_pool(Img img, size_t pool_size) {
     size_t new_width = img.width / pool_size;
     size_t new_height = img.height / pool_size;
     
-    Img output = img_alloc(new_width, new_height);
+    Img output = img_alloc(new_width, new_height, img.type);
+    size_t num_channels = ImgTypesSize[img.type];
     
     for (size_t i = 0; i < new_height; i++) {
         for (size_t j = 0; j < new_width; j++) {
-            float min_val[4] = {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX};
-            
+            float min_val[num_channels];
+            for (size_t k = 0; k < num_channels; k++) {
+                min_val[k] = FLT_MAX;
+            }
             for (size_t ki = 0; ki < pool_size; ki++) {
                 for (size_t kj = 0; kj < pool_size; kj++) {
                     size_t img_x = j * pool_size + kj;
                     size_t img_y = i * pool_size + ki;
                     size_t index = img_y * img.width + img_x;
                     
-                    for (size_t channel = 0; channel < 4; channel++) {
-                        if (img.data.data[index][channel] > min_val[channel]) {
+                    for (size_t channel = 0; channel < num_channels; channel++) {
+                        if (img.data.data[index][channel] < min_val[channel]) {
                             min_val[channel] = img.data.data[index][channel];
                         }
                     }
@@ -110,7 +116,7 @@ Img img_min_pool(Img img, size_t pool_size) {
             }
             
             size_t output_index = i * new_width + j;
-            for (size_t channel = 0; channel < 4; channel++) {
+            for (size_t channel = 0; channel < num_channels; channel++) {
                 output.data.data[output_index][channel] = min_val[channel];
             }
         }
@@ -123,11 +129,15 @@ Img img_mean_pool(Img img, size_t pool_size) {
     size_t new_width = img.width / pool_size;
     size_t new_height = img.height / pool_size;
 
-    Img output = img_alloc(new_width, new_height);
+    Img output = img_alloc(new_width, new_height, img.type);
+    size_t num_channels = ImgTypesSize[img.type];
 
     for (size_t i = 0; i < new_height; i++) {
         for (size_t j = 0; j < new_width; j++) {
-            float sum_val[4] = {0, 0, 0, 0};
+            float sum_val[num_channels];
+            for (size_t k = 0; k < num_channels; k++) {
+                sum_val[k] = 0;
+            }
 
             for (size_t ki = 0; ki < pool_size; ki++) {
                 for (size_t kj = 0; kj < pool_size; kj++) {
@@ -135,16 +145,15 @@ Img img_mean_pool(Img img, size_t pool_size) {
                     size_t img_y = i * pool_size + ki;
                     size_t index = img_y * img.width + img_x;
 
-                    // Her kanalı toplayın
-                    for (size_t channel = 0; channel < 4; channel++) {
+                    for (size_t channel = 0; channel < num_channels; channel++) {
                         sum_val[channel] += img.data.data[index][channel];
                     }
                 }
             }
 
             size_t output_index = i * new_width + j;
-            for (size_t channel = 0; channel < 4; channel++) {
-                output.data.data[output_index][channel] = sum_val[channel] / (pool_size * pool_size);  // Ortalama
+            for (size_t channel = 0; channel < num_channels; channel++) {
+                output.data.data[output_index][channel] = sum_val[channel] / (pool_size * pool_size);
             }
         }
     }
@@ -160,7 +169,7 @@ Img img_edge_detect(Img img) {
 
     size_t new_width = grad_x.width;
     size_t new_height = grad_x.height;
-    Img output = img_alloc(new_width, new_height);
+    Img output = img_alloc(new_width, new_height, img.type);
 
     for (size_t i = 0; i < new_height; i++) {
         for (size_t j = 0; j < new_width; j++) {
