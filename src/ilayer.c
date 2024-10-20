@@ -113,20 +113,20 @@ void layer_dropout_forward(Layer *layer) {
 }
 
 void layer_shuffle_forward(Layer *layer) {
-    int *used_indices = (int *)malloc(layer->outputSize * sizeof(int));
+    Iray1D *used_indices_e = iray1d_alloc(layer->outputSize);
     int source_index;
-    for (size_t i = 0; i < layer->outputSize; i++) {
-        used_indices[i] = 0;
-    }
+    Iray1D *used_indices = iray1d_fill(used_indices_e, 0);
+    iray1d_free(used_indices_e);
     for (size_t i = layer->outputSize - 1; i > 0; i--)
     {
         source_index = rand() % layer->outputSize;
-        while (used_indices[source_index]) {
+        while (used_indices->data[source_index]) {
             source_index = rand() % layer->outputSize;
         }
-        used_indices[source_index] = 1;
+        used_indices->data[source_index] = 1;
         layer->output->data[i] = layer->input->data[source_index];
     }
+    iray1d_free(used_indices);
 }
 
 Layer *layer_dense(size_t inputSize, size_t outputSize) {
