@@ -1,6 +1,6 @@
-# Alemdar
+# ICAN
 
-Alemdar is fast, basic neural network library. It's designed for experimental usages, not recommended to use commercial.
+Ican is fast, basic neural network library. It's designed for experimental usages, not recommended to use commercial.
 
 ## Getting Started
 
