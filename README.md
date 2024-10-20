@@ -34,7 +34,24 @@ End with an example of training of AND gate.
 
 ### Usage
 
-You can check `examples/` folder until I wrote doc.
+You can check `examples/` folder.
+
+About makefile;
+  - `make all`: create library
+  - `make run`: run custom main.c
+  - `make clean`: delete library file
+  - `make fclean`: delete library file and object files
+  - `make gtest`: run gdb test
+  - `make utest`: run custom test from test/ folder
+  - `make memcheck`: run valgrind for detect memory leaks
+
+About folder hierarchy;
+ - `test/`: custom test functions and unity library
+ - `src/`: library functions and header file
+ - `examples/`: examples usages of library
+ - `build/depends/`: dependencies of library
+ - `build/objs/`: stores object files while creating library (`make all`)
+ - `build/results/`: includes bin file (gdb test), output file (program) and library file 
 
 ### Roadmap
 
