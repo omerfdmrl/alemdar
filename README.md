@@ -14,6 +14,7 @@ Requirements for the software and other tools to build, test and push
 
 - [libpng](http://www.libpng.org/pub/png/libpng.html)
 - [libjpeg](http://www.ijg.org/)
+- [cjson](https://github.com/DaveGamble/cJSON)
 
 ### Installing
 
