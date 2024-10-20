@@ -42,4 +42,31 @@ Iray2D *one_hot_encoding(Iray2D *data) {
     return temp;
 }
 
+Iray2D *standard_scaler(Iray2D *data) {
+    Iray2D *scaledData = iray2d_alloc(data->rows, data->cols);
+
+    for (int j = 0; j < data->cols; j++) {
+        double sum = 0.0;
+        for (int i = 0; i < data->rows; i++) {
+            sum += data->data[i][j];
+        }
+        double mean = sum / data->rows;
+
+        double stddev_sum = 0.0;
+        for (int i = 0; i < data->rows; i++) {
+            stddev_sum += (data->data[i][j] - mean) * (data->data[i][j] - mean);
+        }
+        double stddev = sqrt(stddev_sum / data->rows);
+
+        for (int i = 0; i < data->rows; i++) {
+            if (stddev != 0) {
+                scaledData->data[i][j] = (data->data[i][j] - mean) / stddev;
+            } else {
+                scaledData->data[i][j] = data->data[i][j];
+            }
+        }
+    }
+    return scaledData;
+}
+
 #endif // !IPROCESS_H

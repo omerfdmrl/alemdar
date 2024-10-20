@@ -201,6 +201,7 @@ Iray3D *img_mean_pool(Iray3D* img, size_t pool_size);
 Iray3D *img_edge_detect(Iray3D *img);
 
 Iray2D *one_hot_encoding(Iray2D *data);
+Iray2D *standard_scaler(Iray2D *data);
 
 float sigmoid(float x);
 float dsigmoid(float x);
