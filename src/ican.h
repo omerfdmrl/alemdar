@@ -189,6 +189,9 @@ Iray3D *img_resize(Iray3D *img, size_t width, size_t height);
 Iray3D *img_rotate(Iray3D *img, float angle);
 Iray3D **imgs_read(const char *folderPath, size_t count, ImgTypes type);
 void imgs_free(Iray3D **imgs, size_t count);
+void img_write_png(FILE *fp, Iray3D *img);
+void img_write_jpg(FILE *fp, Iray3D *img);
+void img_write(const char *imageName, Iray3D *img);
 
 ISDLContext *isdl_alloc(int width, int height);
 void isdl_free(ISDLContext *context);

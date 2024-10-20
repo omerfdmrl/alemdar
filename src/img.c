@@ -255,4 +255,107 @@ void imgs_free(Iray3D **imgs, size_t count) {
     free(imgs);
 }
 
+void img_write_png(FILE *fp, Iray3D *img) {
+    png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    ISERT_MSG(png != NULL, "Png struct could not created");
+
+    png_infop info = png_create_info_struct(png);
+    ISERT_MSG(info != NULL, "Png struct informations could not created");
+
+    if (setjmp(png_jmpbuf(png))) abort();
+
+    png_init_io(png, fp);
+
+    png_set_IHDR(png, info, img->cols, img->rows,
+                 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+    png_write_info(png, info);
+
+    for (size_t y = 0; y < img->rows; y++) {
+        png_bytep row = (png_bytep)malloc(png_get_rowbytes(png, info));
+        for (size_t x = 0; x < img->cols; x++) {
+            if (img->depth == 1) {
+                row[x * 3] = (png_byte)img->data[y][x][0];     // R
+                row[x * 3 + 1] = (png_byte)img->data[y][x][0]; // G
+                row[x * 3 + 2] = (png_byte)img->data[y][x][0]; // B
+            } else if(img->depth == 3) {
+                row[x * 3] = (png_byte)img->data[y][x][0];     // R
+                row[x * 3 + 1] = (png_byte)img->data[y][x][1]; // G
+                row[x * 3 + 2] = (png_byte)img->data[y][x][2]; // B
+            } else if(img->depth == 4) {
+                row[x * 3] = (png_byte)img->data[y][x][0];     // R
+                row[x * 3 + 1] = (png_byte)img->data[y][x][1]; // G
+                row[x * 3 + 2] = (png_byte)img->data[y][x][2]; // B
+            }
+        }
+        png_write_row(png, row);
+        free(row);
+    }
+
+    png_write_end(png, NULL);
+    png_destroy_write_struct(&png, &info);
+}
+
+void img_write_jpg(FILE *fp, Iray3D *img) {
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_compress(&cinfo);
+    jpeg_stdio_dest(&cinfo, fp);
+
+    cinfo.image_width = img->cols;
+    cinfo.image_height = img->rows;
+    cinfo.input_components = 3;
+    cinfo.in_color_space = JCS_RGB;
+    
+    jpeg_set_defaults(&cinfo);
+    jpeg_set_quality(&cinfo, 100, TRUE);
+
+    jpeg_start_compress(&cinfo, TRUE);
+
+    JSAMPROW row_pointer[1];
+    while (cinfo.next_scanline < cinfo.image_height) {
+        unsigned char *row = (unsigned char *)malloc(cinfo.image_width * cinfo.input_components);
+        for (size_t x = 0; x < img->cols; x++) {
+            if (img->depth == 1) {
+                row[x * 3] = img->data[cinfo.next_scanline][x][0];
+                row[x * 3 + 1] = img->data[cinfo.next_scanline][x][0];
+                row[x * 3 + 2] = img->data[cinfo.next_scanline][x][0];
+            } else if (img->depth == 3) {
+                row[x * 3] = img->data[cinfo.next_scanline][x][0];
+                row[x * 3 + 1] = img->data[cinfo.next_scanline][x][1];
+                row[x * 3 + 2] = img->data[cinfo.next_scanline][x][2];
+            } else if (img->depth == 4) {
+                row[x * 3] = img->data[cinfo.next_scanline][x][0];
+                row[x * 3 + 1] = img->data[cinfo.next_scanline][x][1];
+                row[x * 3 + 2] = img->data[cinfo.next_scanline][x][2];
+            }
+        }
+        row_pointer[0] = row;
+        jpeg_write_scanlines(&cinfo, row_pointer, 1);
+        free(row);
+    }
+
+    jpeg_finish_compress(&cinfo);
+    jpeg_destroy_compress(&cinfo);
+}
+
+void img_write(const char *imageName, Iray3D *img) {
+    const char *extension = strrchr(imageName, '.');
+    ISERT_MSG(extension != NULL, "Image extension could not detected");
+
+    FILE *fp = fopen(imageName, "wb");
+    ISERT_MSG(fp != NULL, "Image could not opened");
+
+    if (strcmp(extension, ".png") == 0) {
+        img_write_png(fp, img);
+    } else if (strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg") == 0) {
+        img_write_jpg(fp, img);
+    }
+
+    fclose(fp);
+}
+
 #endif // !IMG_H
