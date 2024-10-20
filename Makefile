@@ -2,7 +2,7 @@
 CC = cc
 COMPILER = gcc
 FLAGS = 
-LIBRARIES = -lm -lpng -ljpeg `sdl2-config --cflags` `sdl2-config --libs`
+LIBRARIES = -lm -lpng -ljpeg -lcjson `sdl2-config --cflags` `sdl2-config --libs`
 RM = rm -f
 
 SOURCE = main.c

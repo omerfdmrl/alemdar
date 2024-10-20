@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <SDL2/SDL.h>
+#include <cjson/cJSON.h>
 
 #define PI 3.14159265358979323846
 
@@ -241,5 +242,8 @@ float model_cost(Model *model, float *input, float *output);
 void model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs, Iray2D *outputs, ...);
 void model_print(Model *model);
 void model_free(Model *model);
+
+void io_export(Model *model, const char *fileName);
+Model *io_import(const char *fileName);
 
 #endif // !ISEE_H
