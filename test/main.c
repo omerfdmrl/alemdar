@@ -1,4 +1,4 @@
-#include "../src/isee.h"
+#include "../src/ican.h"
 #include "src/unity.h"
 
 float square(float x) {
@@ -391,7 +391,7 @@ void test_iray3d_apply(void) {
 }
 
 void test_img_read_png(void) {
-    Iray3D *A = img_read("./test/data/test.png", IMG_RGBA);
+    Iray3D *A = img_read("./test/data/small/test.png", IMG_RGBA);
 
     float *l0 = (float *)malloc(4 * sizeof(float));
     float *l1 = (float *)malloc(4 * sizeof(float));
@@ -416,7 +416,7 @@ void test_img_read_png(void) {
 }
 
 void test_img_read_jpg(void) {
-    Iray3D *A = img_read("./test/data/test.jpg", IMG_RGBA);
+    Iray3D *A = img_read("./test/data/small/test.jpg", IMG_RGBA);
 
     float *l0 = (float *)malloc(4 * sizeof(float));
     float *l1 = (float *)malloc(4 * sizeof(float));
@@ -441,7 +441,7 @@ void test_img_read_jpg(void) {
 }
 
 void test_img_rgba(void) {
-    Iray3D *A = img_read("./test/data/test.png", IMG_RGBA);
+    Iray3D *A = img_read("./test/data/small/test.png", IMG_RGBA);
 
     TEST_ASSERT_EQUAL_size_t(4, A->depth);
 
@@ -468,7 +468,7 @@ void test_img_rgba(void) {
 }
 
 void test_img_rgb(void) {
-    Iray3D *A = img_read("./test/data/test.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/small/test.png", IMG_RGB);
 
     TEST_ASSERT_EQUAL_size_t(3, A->depth);
 
@@ -495,7 +495,7 @@ void test_img_rgb(void) {
 }
 
 void test_img_gray(void) {
-    Iray3D *A = img_read("./test/data/test.png", IMG_GRAY);
+    Iray3D *A = img_read("./test/data/small/test.png", IMG_GRAY);
     TEST_ASSERT_EQUAL_size_t(1, A->depth);
 
     float *l0 = (float *)malloc(1 * sizeof(float));
@@ -521,115 +521,43 @@ void test_img_gray(void) {
 }
 
 void test_img_resize(void) {
-    Iray3D *A = img_read("./test/data/test.png", IMG_RGB);
-    Iray3D *B = img_resize(A, 4, 4);
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_resize(A, 224, 224);
+    Iray3D *C = img_read("./test/data/cat_resized.png", IMG_RGB);
 
-    float *l0 = (float *)malloc(3 * sizeof(float));
-    float *l1 = (float *)malloc(3 * sizeof(float));
-    float *l2 = (float *)malloc(3 * sizeof(float));
-    float *l3 = (float *)malloc(3 * sizeof(float));
-    float *l4 = (float *)malloc(3 * sizeof(float));
-    float *l5 = (float *)malloc(3 * sizeof(float));
-    float *l6 = (float *)malloc(3 * sizeof(float));
-    float *l7 = (float *)malloc(3 * sizeof(float));
-    float *l8 = (float *)malloc(3 * sizeof(float));
-    float *l9 = (float *)malloc(3 * sizeof(float));
-    float *l10 = (float *)malloc(3 * sizeof(float));
-    float *l11 = (float *)malloc(3 * sizeof(float));
-    float *l12 = (float *)malloc(3 * sizeof(float));
-    float *l13 = (float *)malloc(3 * sizeof(float));
-    float *l14 = (float *)malloc(3 * sizeof(float));
-    float *l15 = (float *)malloc(3 * sizeof(float));
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
 
-    l0[0] = 237.000; l0[1] = 28.000; l0[2] = 36.000;
-    l1[0] = 237.000; l1[1] = 28.000; l1[2] = 36.000;
-    l2[0] = 168.000; l2[1] = 230.000; l2[2] = 29.000;
-    l3[0] = 168.000; l3[1] = 230.000; l3[2] = 29.000;
-
-    l4[0] = 237.000; l4[1] = 28.000; l4[2] = 36.000;
-    l5[0] = 237.000; l5[1] = 28.000; l5[2] = 36.000;
-    l6[0] = 168.000; l6[1] = 230.000; l6[2] = 29.000;
-    l7[0] = 168.000; l7[1] = 230.000; l7[2] = 29.000;
-
-    l8[0] = 111.000; l8[1] = 49.000; l8[2] = 152.000;
-    l9[0] = 111.000; l9[1] = 49.000; l9[2] = 152.000;
-    l10[0] = 156.000; l10[1] = 90.000; l10[2] = 60.000;
-    l11[0] = 156.000; l11[1] = 90.000; l11[2] = 60.000;
-
-    l12[0] = 111.000; l12[1] = 49.000; l12[2] = 152.000;
-    l13[0] = 111.000; l13[1] = 49.000; l13[2] = 152.000;
-    l14[0] = 156.000; l14[1] = 90.000; l14[2] = 60.000;
-    l15[0] = 156.000; l15[1] = 90.000; l15[2] = 60.000;
-
-
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l1, B->data[0][1], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l0, B->data[0][0], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l2, B->data[0][2], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l3, B->data[0][3], 3);
-
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l4, B->data[1][0], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l5, B->data[1][1], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l6, B->data[1][2], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l7, B->data[1][3], 3);
-
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l8, B->data[2][0], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l9, B->data[2][1], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l10, B->data[2][2], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l11, B->data[2][3], 3);
-
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l12, B->data[3][0], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l13, B->data[3][1], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l14, B->data[3][2], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l15, B->data[3][3], 3);
-
-    free(l0);
-    free(l1);
-    free(l2);
-    free(l3);
-    free(l4);
-    free(l5);
-    free(l6);
-    free(l7);
-    free(l8);
-    free(l9);
-    free(l11);
-    free(l12);
-    free(l13);
-    free(l14);
-    free(l15);
     iray3d_free(A);
     iray3d_free(B);
+    iray3d_free(C);
 }
 
 void test_img_rotate(void) {
-    Iray3D *A = img_read("./test/data/test.png", IMG_RGB);
-    Iray3D *C = img_rotate(A, 90);
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_rotate(A, 90);
+    Iray3D *C = img_read("./test/data/cat_rotated.png", IMG_RGB);
 
-    float *l0 = (float *)malloc(3 * sizeof(float));
-    float *l1 = (float *)malloc(3 * sizeof(float));
-    float *l2 = (float *)malloc(3 * sizeof(float));
-    float *l3 = (float *)malloc(3 * sizeof(float));
-
-    l0[0] = 0.000; l0[1] = 0.000; l0[2] = 0.000;
-    l1[0] = 111.000; l1[1] = 49.000; l1[2] = 152.000;
-    l2[0] = 0.000; l2[1] = 0.000; l2[2] = 0.000;
-    l3[0] = 156.000; l3[1] = 90.000; l3[2] = 60.000;
-
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l0, C->data[0][0], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l1, C->data[0][1], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l2, C->data[1][0], 3);
-    TEST_ASSERT_EQUAL_FLOAT_ARRAY(l3, C->data[1][1], 3);
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
 
     iray3d_free(A);
+    iray3d_free(B);
     iray3d_free(C);
-    free(l0);
-    free(l1);
-    free(l2);
-    free(l3);
 }
 
 void test_imgs_read(void) {
-    Iray3D **A = imgs_read("./test/data/", 2, IMG_RGBA);
+    Iray3D **A = imgs_read("./test/data/small/", 2, IMG_RGBA);
 
     float *l0 = (float *)malloc(4 * sizeof(float));
     float *l1 = (float *)malloc(4 * sizeof(float));
@@ -673,7 +601,293 @@ void test_imgs_read(void) {
     free(l7);
 }
 
-/** CONV TESTS WİLL BE HERE */
+void test_img_write_png(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_rotate(A, 90);
+    img_write("./test/data/cat_write.png", B);
+    Iray3D *C = img_read("./test/data/cat_rotated.png", IMG_RGB);
+    Iray3D *D = img_read("./test/data/cat_write.png", IMG_RGB);
+
+    for (size_t i = 0; i < C->rows; i++) {
+        for (size_t j = 0; j < C->cols; j++) {
+            for (size_t k = 0; k < C->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], D->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+    iray3d_free(D);
+}
+
+void test_img_write_jpg(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_rotate(A, 90);
+    img_write("./test/data/cat_write.jpg", B);
+    Iray3D *C = img_read("./test/data/cat_rotated.png", IMG_RGB);
+    Iray3D *D = img_read("./test/data/cat_write.jpg", IMG_RGB);
+
+    for (size_t i = 0; i < C->rows; i++) {
+        for (size_t j = 0; j < C->cols; j++) {
+            for (size_t k = 0; k < C->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], D->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+    iray3d_free(D);
+}
+
+void test_img_conv_blur(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_conv(A, ICONV_BLUR, 2);
+    Iray3D *C = img_read("./test/data/cat_conved_blur.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_conv_emboss(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_conv(A, ICONV_EMBOSS, 2);
+    Iray3D *C = img_read("./test/data/cat_conved_emboss.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_conv_emboss2(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_conv(A, ICONV_EMBOSS2, 2);
+    Iray3D *C = img_read("./test/data/cat_conved_emboss2.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_conv_laplacian(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_conv(A, ICONV_LAPLACIAN, 2);
+    Iray3D *C = img_read("./test/data/cat_conved_laplacian.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_conv_sobelx(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_conv(A, ICONV_SOBELX, 2);
+    Iray3D *C = img_read("./test/data/cat_conved_sobelx.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_conv_sobely(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_conv(A, ICONV_SOBELY, 2);
+    Iray3D *C = img_read("./test/data/cat_conved_sobely.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_edge_detect(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_edge_detect(A);
+    Iray3D *C = img_read("./test/data/cat_edge_detect.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_max_pool(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_max_pool(A, 2);
+    Iray3D *C = img_read("./test/data/cat_max_pool.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_min_pool(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_min_pool(A, 2);
+    Iray3D *C = img_read("./test/data/cat_min_pool.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_img_mean_pool(void) {
+    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *B = img_mean_pool(A, 2);
+    Iray3D *C = img_read("./test/data/cat_mean_pool.png", IMG_RGB);
+
+    for (size_t i = 0; i < B->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            for (size_t k = 0; k < B->depth; k++) {
+                TEST_ASSERT_EQUAL_FLOAT(C->data[i][j][k], B->data[i][j][k]);
+            }
+        }
+    }
+
+    iray3d_free(A);
+    iray3d_free(B);
+    iray3d_free(C);
+}
+
+void test_standart_scaler(void) {
+    double xorData[4][2] = {
+        {0, 0},
+        {0, 1},
+        {1, 0},
+        {1, 1}
+    };
+    Iray2D *data = iray2d_alloc(4, 2);
+    for (size_t i = 0; i < data->rows; i++) {
+        for (size_t j = 0; j < data->cols; j++) {
+            data->data[i][j] = xorData[i][j];
+        }
+    }
+    Iray2D *standardScled = standard_scaler(data);
+
+    TEST_ASSERT_EQUAL_FLOAT(-1.0, standardScled->data[0][0]);
+    TEST_ASSERT_EQUAL_FLOAT(-1.0, standardScled->data[0][1]);
+    TEST_ASSERT_EQUAL_FLOAT(-1.0, standardScled->data[1][0]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, standardScled->data[1][1]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, standardScled->data[2][0]);
+    TEST_ASSERT_EQUAL_FLOAT(-1.0, standardScled->data[2][1]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, standardScled->data[3][0]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, standardScled->data[3][1]);
+
+    iray2d_free(data);
+    iray2d_free(standardScled);
+}
+
+void test_one_hot_encoding(void) {
+    Iray2D *data = iray2d_alloc(3, 1);
+    data->data[0][0] = 1.0;
+    data->data[1][0] = 2.0;
+    data->data[2][0] = 1.0;
+
+    Iray2D *result = one_hot_encoding(data);
+
+    TEST_ASSERT_EQUAL_FLOAT(1.0, result->data[0][0]);
+    TEST_ASSERT_EQUAL_FLOAT(0.0, result->data[1][0]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, result->data[2][0]);
+    TEST_ASSERT_EQUAL_FLOAT(0.0, result->data[0][1]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, result->data[1][1]);
+    TEST_ASSERT_EQUAL_FLOAT(0.0, result->data[2][1]);
+
+    iray2d_free(data);
+    iray2d_free(result);
+}
+
+void test_csv_read(void) {
+    Iray2D *data = csv_read("./test/data/test.csv", 3, 4);
+    
+    TEST_ASSERT_EQUAL_FLOAT(-1.0,data->data[0][0]);
+    TEST_ASSERT_EQUAL_FLOAT(-0.8,data->data[0][1]);
+    TEST_ASSERT_EQUAL_FLOAT(-0.6,data->data[0][2]);
+    TEST_ASSERT_EQUAL_FLOAT(-0.4,data->data[0][3]);
+    TEST_ASSERT_EQUAL_FLOAT(-0.2,data->data[1][0]);
+    TEST_ASSERT_EQUAL_FLOAT(0.0,data->data[1][1]);
+    TEST_ASSERT_EQUAL_FLOAT(0.2,data->data[1][2]);
+    TEST_ASSERT_EQUAL_FLOAT(0.4,data->data[1][3]);
+    TEST_ASSERT_EQUAL_FLOAT(0.6,data->data[2][0]);
+    TEST_ASSERT_EQUAL_FLOAT(0.8,data->data[2][1]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0,data->data[2][2]);
+    TEST_ASSERT_EQUAL_FLOAT(0.0,data->data[2][3]);
+
+    iray2d_free(data);
+}
 
 void test_layer_dense(void) {
     Layer *layer = layer_dense(3, 5);
@@ -735,17 +949,17 @@ void test_layer_dropout(void) {
 }
 
 void test_model_alloc(void) {
-    IModel *model = imodel_alloc(5);
+    Model *model = model_alloc(5);
     TEST_ASSERT_EQUAL(sizeof(Layer *), sizeof(model->layers));
-    imodel_free(model);
+    model_free(model);
 }
 
 void test_model_add(void) {
-    IModel *model = imodel_alloc(2);
+    Model *model = model_alloc(2);
     Layer *dense = layer_dense(2, 1);
     Layer *activation = layer_activation(Sigmoid);
-    imodel_add(model, dense);
-    imodel_add(model, activation);
+    model_add(model, dense);
+    model_add(model, activation);
 
     TEST_ASSERT_EQUAL_CHAR(Dense, model->layers[0]->name);
     TEST_ASSERT_EQUAL_size_t(2, model->layers[0]->inputSize);
@@ -768,9 +982,119 @@ void test_model_add(void) {
     TEST_ASSERT_EQUAL_size_t(0, model->layers[1]->weight->rows);
     TEST_ASSERT_EQUAL_size_t(0, model->layers[1]->weight->cols);
 
-    imodel_free(model);
+    model_free(model);
     layer_free(dense);
     layer_free(activation);
+}
+
+void test_initializer_ones(void) {
+    Model *m = model_alloc(1);
+    Layer *l = layer_dense(3, 2);
+    model_add(m, l);
+    model_randomize(Ones, m);
+    for (size_t i = 0; i < l->weight->rows; i++) {
+        for (size_t j = 0; j < l->weight->cols; j++) {
+            TEST_ASSERT_EQUAL_FLOAT(1, l->weight->data[i][j]);
+        }
+    }
+    for (size_t i = 0; i < l->bias->rows; i++) {
+        TEST_ASSERT_EQUAL_FLOAT(1, l->bias->data[i]);
+    }
+    
+    model_free(m);
+}
+
+void test_initializer_zeros(void) {
+    Model *m = model_alloc(1);
+    Layer *l = layer_dense(3, 2);
+    model_add(m, l);
+    model_randomize(Zeros, m);
+    for (size_t i = 0; i < l->weight->rows; i++) {
+        for (size_t j = 0; j < l->weight->cols; j++) {
+            TEST_ASSERT_EQUAL_FLOAT(0, l->weight->data[i][j]);
+        }
+    }
+    for (size_t i = 0; i < l->bias->rows; i++) {
+        TEST_ASSERT_EQUAL_FLOAT(0, l->bias->data[i]);
+    }
+    
+    model_free(m);
+}
+
+void test_initializer_random_heuniform(void) {
+    Model *m = model_alloc(1);
+    Layer *l = layer_dense(3, 2);
+    model_add(m, l);
+    model_randomize(RandomHeUniform, m);
+    for (size_t i = 0; i < l->weight->rows; i++) {
+        for (size_t j = 0; j < l->weight->cols; j++) {
+            TEST_ASSERT_TRUE(l->weight->data[i][j] > -1);
+            TEST_ASSERT_TRUE(l->weight->data[i][j] < 1);
+        }
+    }
+    for (size_t i = 0; i < l->bias->rows; i++) {
+            TEST_ASSERT_TRUE(l->bias->data[i] > -1);
+            TEST_ASSERT_TRUE(l->bias->data[i] < 1);
+    }
+    
+    model_free(m);
+}
+
+void test_initializer_random_normal(void) {
+    Model *m = model_alloc(1);
+    Layer *l = layer_dense(3, 2);
+    model_add(m, l);
+    model_randomize(RandomNormal, m);
+    for (size_t i = 0; i < l->weight->rows; i++) {
+        for (size_t j = 0; j < l->weight->cols; j++) {
+            TEST_ASSERT_TRUE(l->weight->data[i][j] > -1);
+            TEST_ASSERT_TRUE(l->weight->data[i][j] < 1);
+        }
+    }
+    for (size_t i = 0; i < l->bias->rows; i++) {
+            TEST_ASSERT_TRUE(l->bias->data[i] > -1);
+            TEST_ASSERT_TRUE(l->bias->data[i] < 1);
+    }
+    
+    model_free(m);
+}
+
+void test_initializer_random_uniform(void) {
+    Model *m = model_alloc(1);
+    Layer *l = layer_dense(3, 2);
+    model_add(m, l);
+    model_randomize(RandomUniform, m);
+    for (size_t i = 0; i < l->weight->rows; i++) {
+        for (size_t j = 0; j < l->weight->cols; j++) {
+            TEST_ASSERT_TRUE(l->weight->data[i][j] > -0.05);
+            TEST_ASSERT_TRUE(l->weight->data[i][j] < 0.05);
+        }
+    }
+    for (size_t i = 0; i < l->bias->rows; i++) {
+            TEST_ASSERT_TRUE(l->bias->data[i] > -0.05);
+            TEST_ASSERT_TRUE(l->bias->data[i] < 0.05);
+    }
+    
+    model_free(m);
+}
+
+void test_initializer_random_xavier(void) {
+    Model *m = model_alloc(1);
+    Layer *l = layer_dense(3, 2);
+    model_add(m, l);
+    model_randomize(RandomXavier, m);
+    for (size_t i = 0; i < l->weight->rows; i++) {
+        for (size_t j = 0; j < l->weight->cols; j++) {
+            TEST_ASSERT_TRUE(l->weight->data[i][j] > -1);
+            TEST_ASSERT_TRUE(l->weight->data[i][j] < 1);
+        }
+    }
+    for (size_t i = 0; i < l->bias->rows; i++) {
+            TEST_ASSERT_TRUE(l->bias->data[i] > -1);
+            TEST_ASSERT_TRUE(l->bias->data[i] < 1);
+    }
+    
+    model_free(m);
 }
 
 int main(void)
@@ -810,6 +1134,31 @@ int main(void)
     RUN_TEST(test_img_resize);
     RUN_TEST(test_img_rotate);
     RUN_TEST(test_imgs_read);
+    RUN_TEST(test_img_write_png);
+    RUN_TEST(test_img_write_jpg);
+
+    RUN_TEST(test_img_conv_blur);
+    RUN_TEST(test_img_conv_emboss);
+    RUN_TEST(test_img_conv_emboss2);
+    RUN_TEST(test_img_conv_laplacian);
+    RUN_TEST(test_img_conv_sobelx);
+    RUN_TEST(test_img_conv_sobely);
+    RUN_TEST(test_img_edge_detect);
+    RUN_TEST(test_img_max_pool);
+    RUN_TEST(test_img_min_pool);
+    RUN_TEST(test_img_mean_pool);
+
+    RUN_TEST(test_standart_scaler);
+    RUN_TEST(test_one_hot_encoding);
+
+    RUN_TEST(test_csv_read);
+
+    RUN_TEST(test_initializer_ones);
+    RUN_TEST(test_initializer_zeros);
+    RUN_TEST(test_initializer_random_heuniform);
+    RUN_TEST(test_initializer_random_normal);
+    RUN_TEST(test_initializer_random_uniform);
+    RUN_TEST(test_initializer_random_xavier);
 
     RUN_TEST(test_layer_dense);
     RUN_TEST(test_layer_activation);
