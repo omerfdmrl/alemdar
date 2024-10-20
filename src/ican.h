@@ -102,7 +102,7 @@ static const char* LayerNamesChar[] = {
 	[Dropout] = "Dropout",
 	[Shuffle] = "Shuffle",
 };
-#define ILAYER_NAME(name) LayerNamesChar[(name)]
+#define LAYER_NAME(name) LayerNamesChar[(name)]
 
 typedef struct Layer Layer;
 

@@ -30,7 +30,7 @@ void layer_free(Layer *layer) {
 
 void layer_print(Layer *layer) {
 	size_t param = layer->bias->rows + layer->weight->cols * layer->weight->rows + layer->params->rows;
-	printf("%-20s(%zu, %zu)%-16s%zu\n", ILAYER_NAME(layer->name), layer->inputSize, layer->outputSize,"", param);
+	printf("%-20s(%zu, %zu)%-16s%zu\n", LAYER_NAME(layer->name), layer->inputSize, layer->outputSize,"", param);
 }
 
 void layer_dense_forward(Layer *layer) {
