@@ -22,13 +22,11 @@ environment running
 
 Clone project
 
-    git clone https://github.com/omerfdmrl/alemdar alemdar
+    git clone https://github.com/omerfdmrl/ican ican
 
 Run example network
 
-    cd alemdar
-    cp ./examples/main.c ./main.c
-    make
+    make run SOURCE=./examples/and.c
 
 End with an example of training of AND gate.
 
@@ -105,7 +103,7 @@ If you have a suggestion that would make this better, please fork the repo and c
 
 We use [Semantic Versioning](http://semver.org/) for versioning. For the versions
 available, see the [tags on this
-repository](https://github.com/omerfdmrl/alemdar/tags).
+repository](https://github.com/omerfdmrl/ican/tags).
 
 ## Authors
 
@@ -115,7 +113,7 @@ repository](https://github.com/omerfdmrl/alemdar/tags).
   [PurpleBooth](https://github.com/PurpleBooth)
 
 See also the list of
-[contributors](https://github.com/omerfdmrl/alemdar/contributors)
+[contributors](https://github.com/omerfdmrl/ican/contributors)
 who participated in this project.
 
 ## License
