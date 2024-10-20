@@ -138,6 +138,7 @@ void model_free(Model *model) {
 		layer_free(model->layers[i]);
 	}
 	free(model->layers);
+	free(model);
 }
 
 #endif // !IMODEL_H
