@@ -69,4 +69,37 @@ Iray2D *standard_scaler(Iray2D *data) {
     return scaledData;
 }
 
+Iray2D *pad_sequences(Iray2D *data, size_t maxLength, PadTypes padding, PadTypes truncating, float value) {
+    size_t new_cols = maxLength;
+    
+    Iray2D *padded_data_alloc = iray2d_alloc(data->rows, new_cols);
+    Iray2D *padded_data = iray2d_fill(padded_data_alloc, value);
+    iray2d_free(padded_data_alloc);
+    
+    for (size_t i = 0; i < data->rows; i++) {
+        size_t start_index = 0;
+        size_t copy_length = data->cols;
+        
+        if (data->cols > maxLength) {
+            copy_length = maxLength;
+            if (truncating == PAD_PRE) {
+                start_index = data->cols - maxLength;
+            }
+        }
+        
+        size_t pad_start = 0;
+        if (padding == PAD_POST) {
+            pad_start = 0;
+        } else {
+            pad_start = new_cols - copy_length;
+        }
+        
+        for (size_t j = 0; j < copy_length; j++) {
+            padded_data->data[i][pad_start + j] = data->data[i][start_index + j];
+        }
+    }
+    
+    return padded_data;
+}
+
 #endif // !IPROCESS_H

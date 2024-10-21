@@ -91,6 +91,11 @@ extern float ICONV_SOBELX[3][3];
 extern float ICONV_SOBELY[3][3];
 
 typedef enum {
+    PAD_POST,
+    PAD_PRE
+} PadTypes;
+
+typedef enum {
 	Dense,
 	Activation,
 	Dropout,
@@ -206,6 +211,7 @@ Iray3D *img_edge_detect(Iray3D *img);
 
 Iray2D *one_hot_encoding(Iray2D *data);
 Iray2D *standard_scaler(Iray2D *data);
+Iray2D *pad_sequences(Iray2D *data, size_t maxLength, PadTypes padding, PadTypes truncating, float value);
 
 float sigmoid(float x);
 float dsigmoid(float x);
