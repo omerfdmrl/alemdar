@@ -11,6 +11,8 @@ TNAME = bin
 
 TPATH = test/
 UPATH = test/src/
+TDPATH = test/data/
+TDSPATH = test/data/small/
 OPATH = build/objs/
 RPATH = build/results/
 
@@ -21,7 +23,7 @@ TFILES = $(wildcard $(UPATH)*.c)
 all: $(NAME)
 
 create_dirs:
-	@mkdir -p $(OPATH) $(RPATH)
+	@mkdir -p $(OPATH) $(RPATH) $(TDSPATH)
 
 $(NAME): $(OFILES)
 	ar rcs $(RPATH)$(NAME) $^
@@ -29,6 +31,10 @@ $(NAME): $(OFILES)
 
 $(OPATH)%.o: src/%.c | create_dirs
 	$(CC) $(FLAGS) -c $< -o $@
+
+$(TDSPATH):
+	@mkdir -p $(TDSPATH)
+	$(COMPILER) $(FLAGS) $(TPATH)build.c $(CFILES) $(LIBRARIES) -o $(RPATH)$(TNAME) && ./$(RPATH)$(TNAME)
 
 clean:
 	@if [ -f $(OPATH)$(NAME) ]; then $(RM) $(OPATH)$(NAME); fi
@@ -39,6 +45,7 @@ fclean: clean
 	$(RM) -r $(RPATH)$(OUTPUT)
 	$(RM) -r $(RPATH)$(TNAME)
 	$(RM) -r $(RPATH)$(NAME)
+	$(RM) -rf $(TDPATH)
 
 $(OUTPUT): $(NAME)
 	$(COMPILER) $(FLAGS) $(SOURCE) $(CFILES) $(LIBRARIES) -o $(RPATH)$(OUTPUT)
@@ -49,7 +56,7 @@ run: $(OUTPUT)
 gtest:
 	$(COMPILER) -g $(FLAGS) $(SOURCE) $(CFILES) $(LIBRARIES) -o $(RPATH)$(TNAME) && gdb $(RPATH)$(TNAME)
 
-utest:
+utest: $(TDSPATH)
 	$(COMPILER) $(FLAGS) $(TPATH)$(SOURCE) $(CFILES) $(LIBRARIES) $(TFILES) -o $(RPATH)$(TNAME) && ./$(RPATH)$(TNAME)
 
 memcheck: $(OUTPUT)

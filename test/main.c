@@ -423,10 +423,10 @@ void test_img_read_jpg(void) {
     float *l2 = (float *)malloc(4 * sizeof(float));
     float *l3 = (float *)malloc(4 * sizeof(float));
 
-    l0[0] = 229.000; l0[1] = 32.000; l0[2] = 49.000; l0[3] = 255.000;
-    l1[0] = 164.000; l1[1] = 225.000; l1[2] = 26.000; l1[3] = 255.000;
-    l2[0] = 107.000; l2[1] = 45.000; l2[2] = 142.000; l2[3] = 255.000;
-    l3[0] = 168.000; l3[1] = 94.000; l3[2] = 67.000; l3[3] = 255.000;
+    l0[0] = 143.000; l0[1] = 74.000; l0[2] = 43.000; l0[3] = 255.000;
+    l1[0] = 241.000; l1[1] = 172.000; l1[2] = 141.000; l1[3] = 255.000;
+    l2[0] = 131.000; l2[1] = 62.000; l2[2] = 31.000; l2[3] = 255.000;
+    l3[0] = 158.000; l3[1] = 89.000; l3[2] = 58.000; l3[3] = 255.000;
 
     TEST_ASSERT_EQUAL_FLOAT_ARRAY(l0, A->data[0][0], 4);
     TEST_ASSERT_EQUAL_FLOAT_ARRAY(l1, A->data[0][1], 4);
@@ -521,9 +521,9 @@ void test_img_gray(void) {
 }
 
 void test_img_resize(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_resize(A, 224, 224);
-    Iray3D *C = img_read("./test/data/cat_resized.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_resized.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -539,9 +539,9 @@ void test_img_resize(void) {
 }
 
 void test_img_rotate(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_rotate(A, 90);
-    Iray3D *C = img_read("./test/data/cat_rotated.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_rotated.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -602,11 +602,11 @@ void test_imgs_read(void) {
 }
 
 void test_img_write_png(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_rotate(A, 90);
-    img_write("./test/data/cat_write.png", B);
-    Iray3D *C = img_read("./test/data/cat_rotated.png", IMG_RGB);
-    Iray3D *D = img_read("./test/data/cat_write.png", IMG_RGB);
+    img_write("./test/data/img_write.png", B);
+    Iray3D *C = img_read("./test/data/img_rotated.png", IMG_RGB);
+    Iray3D *D = img_read("./test/data/img_write.png", IMG_RGB);
 
     for (size_t i = 0; i < C->rows; i++) {
         for (size_t j = 0; j < C->cols; j++) {
@@ -623,12 +623,12 @@ void test_img_write_png(void) {
 }
 
 void test_img_write_jpg(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_rotate(A, 90);
-    img_write("./test/data/cat_write.jpg", B);
-    Iray3D *C = img_read("./test/data/cat_rotated.png", IMG_RGB);
-    Iray3D *D = img_read("./test/data/cat_write.jpg", IMG_RGB);
-
+    img_write("./test/data/img_write.jpg", B);
+    Iray3D *C = img_read("./test/data/img_rotated.png", IMG_RGB);
+    Iray3D *D = img_read("./test/data/img_write.jpg", IMG_RGB);
+    
     for (size_t i = 0; i < C->rows; i++) {
         for (size_t j = 0; j < C->cols; j++) {
             for (size_t k = 0; k < C->depth; k++) {
@@ -644,9 +644,9 @@ void test_img_write_jpg(void) {
 }
 
 void test_img_conv_blur(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_conv(A, ICONV_BLUR, 2);
-    Iray3D *C = img_read("./test/data/cat_conved_blur.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_conved_blur.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -662,9 +662,9 @@ void test_img_conv_blur(void) {
 }
 
 void test_img_conv_emboss(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_conv(A, ICONV_EMBOSS, 2);
-    Iray3D *C = img_read("./test/data/cat_conved_emboss.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_conved_emboss.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -680,9 +680,9 @@ void test_img_conv_emboss(void) {
 }
 
 void test_img_conv_emboss2(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_conv(A, ICONV_EMBOSS2, 2);
-    Iray3D *C = img_read("./test/data/cat_conved_emboss2.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_conved_emboss2.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -698,9 +698,9 @@ void test_img_conv_emboss2(void) {
 }
 
 void test_img_conv_laplacian(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_conv(A, ICONV_LAPLACIAN, 2);
-    Iray3D *C = img_read("./test/data/cat_conved_laplacian.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_conved_laplacian.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -716,9 +716,9 @@ void test_img_conv_laplacian(void) {
 }
 
 void test_img_conv_sobelx(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_conv(A, ICONV_SOBELX, 2);
-    Iray3D *C = img_read("./test/data/cat_conved_sobelx.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_conved_sobelx.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -734,9 +734,9 @@ void test_img_conv_sobelx(void) {
 }
 
 void test_img_conv_sobely(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_conv(A, ICONV_SOBELY, 2);
-    Iray3D *C = img_read("./test/data/cat_conved_sobely.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_conved_sobely.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -752,9 +752,9 @@ void test_img_conv_sobely(void) {
 }
 
 void test_img_edge_detect(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_edge_detect(A);
-    Iray3D *C = img_read("./test/data/cat_edge_detect.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_edge_detect.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -770,9 +770,9 @@ void test_img_edge_detect(void) {
 }
 
 void test_img_max_pool(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_max_pool(A, 2);
-    Iray3D *C = img_read("./test/data/cat_max_pool.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_max_pool.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -788,9 +788,9 @@ void test_img_max_pool(void) {
 }
 
 void test_img_min_pool(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_min_pool(A, 2);
-    Iray3D *C = img_read("./test/data/cat_min_pool.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_min_pool.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -806,9 +806,9 @@ void test_img_min_pool(void) {
 }
 
 void test_img_mean_pool(void) {
-    Iray3D *A = img_read("./test/data/cat.png", IMG_RGB);
+    Iray3D *A = img_read("./test/data/img.png", IMG_RGB);
     Iray3D *B = img_mean_pool(A, 2);
-    Iray3D *C = img_read("./test/data/cat_mean_pool.png", IMG_RGB);
+    Iray3D *C = img_read("./test/data/img_mean_pool.png", IMG_RGB);
 
     for (size_t i = 0; i < B->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
