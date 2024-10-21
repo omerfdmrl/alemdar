@@ -1,4 +1,3 @@
-
 CC = cc
 COMPILER = gcc
 FLAGS = 
@@ -10,10 +9,10 @@ OUTPUT = program
 NAME = libican.a
 TNAME = bin
 
-TPATH=test/
-UPATH=test/src/
-OPATH=build/objs/
-RPATH=build/results/
+TPATH = test/
+UPATH = test/src/
+OPATH = build/objs/
+RPATH = build/results/
 
 CFILES = $(wildcard src/*.c)
 OFILES = $(patsubst src/%.c, $(OPATH)%.o, $(CFILES))
@@ -21,26 +20,27 @@ TFILES = $(wildcard $(UPATH)*.c)
 
 all: $(NAME)
 
+create_dirs:
+	@mkdir -p $(OPATH) $(RPATH)
+
 $(NAME): $(OFILES)
-	ar rcs $(RPATH)$(NAME) $<
+	ar rcs $(RPATH)$(NAME) $^
 	ranlib $(RPATH)$(NAME)
 
-$(OPATH)%.o: src/%.c
+$(OPATH)%.o: src/%.c | create_dirs
 	$(CC) $(FLAGS) -c $< -o $@
 
 clean:
 	@if [ -f $(OPATH)$(NAME) ]; then $(RM) $(OPATH)$(NAME); fi
 
-fclean:
-	@if [ -f $(OPATH)$(NAME) ]; then $(RM) $(OPATH)$(NAME); fi
+fclean: clean
 	@if [ -n "$(OFILES)" ]; then $(RM) $(OFILES); fi
 	@if [ -f $(TNAME) ]; then $(RM) $(TNAME); fi
 	$(RM) -r $(RPATH)$(OUTPUT)
 	$(RM) -r $(RPATH)$(TNAME)
 	$(RM) -r $(RPATH)$(NAME)
 
-
-$(OUTPUT):
+$(OUTPUT): $(NAME)
 	$(COMPILER) $(FLAGS) $(SOURCE) $(CFILES) $(LIBRARIES) -o $(RPATH)$(OUTPUT)
 
 run: $(OUTPUT)
@@ -55,5 +55,5 @@ utest:
 memcheck: $(OUTPUT)
 	valgrind --tool=memcheck --leak-check=full -s ./$(RPATH)$(OUTPUT)
 
-.PHONY: all clean fclean run test memcheck
+.PHONY: all create_dirs clean fclean run gtest utest memcheck
 .DEFAULT_GOAL = run

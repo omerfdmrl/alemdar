@@ -248,6 +248,39 @@ Iray3D **imgs_read(const char *folderPath, size_t count, ImgTypes type) {
     return output;
 }
 
+Iray3D **imgs_read_wc(const char *folderPath, size_t count, ImgTypes type, Iray3D *(*callback)(Iray3D *img)) {
+    DIR *dir;
+    struct dirent *entry;
+    size_t file_count = 0;
+
+    dir = opendir(folderPath);
+    ISERT_MSG(dir != NULL, "Dir could not read");
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            file_count++;
+        }
+    }
+    ISERT_MSG(file_count >= count, "Count is bigger than file count");
+    Iray3D **output = malloc(sizeof(Iray3D *) * count);
+    size_t i = 0;
+    rewinddir(dir);
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            const char *extension = strrchr(entry->d_name, '.');
+            if(strcmp(extension, ".png") == 0 || strcmp(extension, ".jpg") == 0 || strcmp(extension, ".jpeg") == 0) {
+                char fullPath[256];
+                snprintf(fullPath,sizeof(fullPath), "%s%s", folderPath, entry->d_name);
+                output[i] = callback(img_read(fullPath, type));
+                i++;
+            }
+        }
+        if(count == i) break;
+    }
+    closedir(dir);
+    return output;
+}
+
 void imgs_free(Iray3D **imgs, size_t count) {
     for (size_t i = 0; i < count; i++) {
         iray3d_free(imgs[i]);

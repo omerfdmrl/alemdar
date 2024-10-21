@@ -188,6 +188,7 @@ Iray3D *img_read(const char *imageName, ImgTypes type);
 Iray3D *img_resize(Iray3D *img, size_t width, size_t height);
 Iray3D *img_rotate(Iray3D *img, float angle);
 Iray3D **imgs_read(const char *folderPath, size_t count, ImgTypes type);
+Iray3D **imgs_read_wc(const char *folderPath, size_t count, ImgTypes type, Iray3D *(*callback)(Iray3D *img));
 void imgs_free(Iray3D **imgs, size_t count);
 void img_write_png(FILE *fp, Iray3D *img);
 void img_write_jpg(FILE *fp, Iray3D *img);
