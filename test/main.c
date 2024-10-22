@@ -870,6 +870,38 @@ void test_one_hot_encoding(void) {
     iray2d_free(result);
 }
 
+void test_fit_on_texts(void) {
+    const char *text = "this is a test test sentence test is this";
+    Tokenizer *tokenizer = fit_on_texts(text);
+
+    TEST_ASSERT_EQUAL_STRING("this", tokenizer->words[0]);
+    TEST_ASSERT_EQUAL_STRING("is", tokenizer->words[1]);
+    TEST_ASSERT_EQUAL_STRING("a", tokenizer->words[2]);
+    TEST_ASSERT_EQUAL_STRING("test", tokenizer->words[3]);
+    TEST_ASSERT_EQUAL_STRING("sentence", tokenizer->words[4]);
+
+    tokenizer_free(tokenizer);
+}
+
+void test_texts_to_sequences(void) {
+    const char *text = "this is a test test sentence test is this";
+    Tokenizer *tokenizer = fit_on_texts(text);
+    Iray1D *sequence = texts_to_sequences(tokenizer, text);
+    
+    TEST_ASSERT_EQUAL_FLOAT(1.0, sequence->data[0]);
+    TEST_ASSERT_EQUAL_FLOAT(2.0, sequence->data[1]);
+    TEST_ASSERT_EQUAL_FLOAT(3.0, sequence->data[2]);
+    TEST_ASSERT_EQUAL_FLOAT(4.0, sequence->data[3]);
+    TEST_ASSERT_EQUAL_FLOAT(4.0, sequence->data[4]);
+    TEST_ASSERT_EQUAL_FLOAT(5.0, sequence->data[5]);
+    TEST_ASSERT_EQUAL_FLOAT(4.0, sequence->data[6]);
+    TEST_ASSERT_EQUAL_FLOAT(2.0, sequence->data[7]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, sequence->data[8]);
+
+    tokenizer_free(tokenizer);
+    iray1d_free(sequence);
+}
+
 void test_csv_read(void) {
     Iray2D *data = csv_read("./test/data/test.csv", 3, 4);
     
@@ -1150,6 +1182,8 @@ int main(void)
 
     RUN_TEST(test_standart_scaler);
     RUN_TEST(test_one_hot_encoding);
+    RUN_TEST(test_fit_on_texts);
+    RUN_TEST(test_texts_to_sequences);
 
     RUN_TEST(test_csv_read);
 
