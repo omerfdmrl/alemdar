@@ -153,8 +153,6 @@ Iray1D *texts_to_sequences(Tokenizer *tokenizer, const char *text) {
         token2 = strtok(NULL, " ");
     }
 
-    free(cop_data);
-
     float *temp_data = (float *)malloc(sayac * sizeof(float));
     if (temp_data == NULL) {
         return NULL;
