@@ -95,6 +95,12 @@ typedef enum {
     PAD_PRE
 } PadTypes;
 
+typedef struct {
+    char **words;
+    size_t size;
+    size_t capacity;
+} Tokenizer;
+
 typedef enum {
 	Dense,
 	Activation,
@@ -212,6 +218,9 @@ Iray3D *img_edge_detect(Iray3D *img);
 Iray2D *one_hot_encoding(Iray2D *data);
 Iray2D *standard_scaler(Iray2D *data);
 Iray2D *pad_sequences(Iray2D *data, size_t maxLength, PadTypes padding, PadTypes truncating, float value);
+Tokenizer *fit_on_texts(const char *text);
+Iray1D *texts_to_sequences(Tokenizer *tokenizer, const char *text);
+void tokenizer_free(Tokenizer *tokenizer);
 
 float sigmoid(float x);
 float dsigmoid(float x);
