@@ -103,6 +103,7 @@ typedef struct {
 
 typedef enum {
 	Dense,
+    RNN,
 	Activation,
 	Dropout,
 	Shuffle,
@@ -110,6 +111,7 @@ typedef enum {
 
 static const char* LayerNamesChar[] = {
 	[Dense] = "Dense",
+	[RNN] = "RNN",
 	[Activation] = "Activation",
 	[Dropout] = "Dropout",
 	[Shuffle] = "Shuffle",
@@ -239,6 +241,7 @@ Iray2D *csv_read(const char *filename, size_t rows, size_t cols);
 void layer_free(Layer *layer);
 void layer_print(Layer *layer);
 Layer *layer_dense(size_t inputSize, size_t outputSize);
+Layer *layer_rnn(size_t inputSize, size_t outputSize);
 Layer *layer_activation(ActivationTypes activation);
 Layer *layer_dropout(float rate);
 Layer *layer_shuffle(float rate);
