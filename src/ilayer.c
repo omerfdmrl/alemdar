@@ -44,6 +44,19 @@ void layer_dense_forward(Layer *layer) {
     }
 }
 
+void layer_rnn_forward(Layer *layer) {
+    for (size_t j = 0; j < layer->outputSize; j++) {
+        layer->output->data[j] = 0;
+        for (size_t i = 0; i < layer->inputSize; i++) {
+            layer->output->data[j] += layer->input->data[i] * layer->weight->data[i][j];
+        }
+        layer->output->data[j] += layer->params->data[j] * layer->weight->data[layer->inputSize][j];
+        layer->output->data[j] += layer->bias->data[j];
+        layer->output->data[j] = tanhf(layer->output->data[j]);
+        layer->params->data[j] = layer->output->data[j];
+    }
+}
+
 void layer_activation_sigmoid_forward(Layer *layer) {
     for (size_t i = 0; i < layer->outputSize; i++)
     {
@@ -131,6 +144,13 @@ void layer_shuffle_forward(Layer *layer) {
 
 Layer *layer_dense(size_t inputSize, size_t outputSize) {
     return layer_alloc(Dense, inputSize, outputSize, 0, layer_dense_forward, NULL);
+}
+
+Layer *layer_rnn(size_t inputSize, size_t outputSize) {
+    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_rnn_forward, NULL);
+    iray2d_free(layer->weight);
+    layer->weight = iray2d_alloc(inputSize + 1, outputSize);
+    return layer;
 }
 
 Layer *layer_activation(ActivationTypes activation) {

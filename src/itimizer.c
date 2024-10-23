@@ -50,81 +50,118 @@ void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outpu
     if(rate == 0.0) {
         rate = 1e-1;
     }
-    for (size_t i = 0; i < inputs->rows; i++)
-    {
-        float *input = inputs->data[i];
-        float *output = outputs->data[i];
+
+    size_t time_steps = inputs->rows;
+    for (size_t t = 0; t < time_steps; t++) {
+        float *input = inputs->data[t];
+        float *output = outputs->data[t];
+
         model_input(model, input);
         model_forward(model);
+
         float *parsed = MODEL_OUTPUT(model);
         bool first = true;
+
         float **delta = (float **)malloc(sizeof(float) * model->layer_count);
-        for (int l = model->layer_count - 1; l >= 0; l--)
-        {
+
+        for (int l = model->layer_count - 1; l >= 0; l--) {
             Layer *layer = model->layers[l];
             delta[l] = (float *)malloc(layer->outputSize * sizeof(float));
-            if(layer->name == Activation) {
+
+            if (layer->name == Activation) {
                 layer->backward(layer);
                 continue;
             }
-            if(l + 1 <= l) {
-                for (size_t k = 0; k < layer->output->rows; k++)
-                {
-                    layer->output->data[i] = model->layers[l + 1]->input->data[i];
-                }
-            }
-            Layer *prevLayer;
-            float *prevDelta;
-            for (size_t ll = l + 1; ll < model->layer_count - 1; ll++)
-            {
-                if(model->layers[ll]->name != Activation){
-                    prevLayer = model->layers[ll];
-                    prevDelta = delta[ll];
-                    break;
-                }
-            }
-            if(first) {
-                for (size_t j = 0; j < layer->output->rows; j++)
-                {
-                    delta[l][j] = (output[j] - parsed[j]) * layer->output->data[j];
-                }
-                first = false;
-            }else {
-                for (size_t j = 0; j < layer->outputSize; j++)
-                {
-                    delta[l][j] = 0.0;
-                    for (size_t k = 0; k < prevLayer->outputSize; k++)  
-                    {
-                        delta[l][j] += prevDelta[k] * prevLayer->weight->data[k][j];
+
+            if (layer->name == RNN) {
+                if (first) {
+                    for (size_t j = 0; j < layer->outputSize; j++) {
+                        delta[l][j] = (output[j] - parsed[j]) * layer->output->data[j];
                     }
-                    delta[l][j] *= layer->output->data[j];
+                    first = false;
+                } else {
+                    Layer *prevLayer = NULL;
+                    float *prevDelta = NULL;
+
+                    for (int ll = l + 1; ll < model->layer_count - 1; ll++) {
+                        if (model->layers[ll]->name != Activation) {
+                            prevLayer = model->layers[ll];
+                            prevDelta = delta[ll];
+                            break;
+                        }
+                    }
+
+                    for (size_t j = 0; j < layer->outputSize; j++) {
+                        delta[l][j] = 0.0;
+                        for (size_t k = 0; k < prevLayer->outputSize; k++) {
+                            delta[l][j] += prevDelta[k] * prevLayer->weight->data[k][j];
+                        }
+                        delta[l][j] *= dtanh(layer->output->data[j]);
+                    }
+                }
+
+                for (size_t j = 0; j < layer->inputSize; j++) {
+                    for (size_t k = 0; k < layer->outputSize; k++) {
+                        float dw = rate * delta[l][k] * layer->input->data[j];
+                        layer->weight->data[j][k] += dw;
+                    }
+                }
+
+                for (size_t j = 0; j < layer->outputSize; j++) {
+                    float db = delta[l][j] * rate;
+                    layer->bias->data[j] += db;
+                }
+            } else {
+                if (first) {
+                    for (size_t j = 0; j < layer->output->rows; j++) {
+                        delta[l][j] = (output[j] - parsed[j]) * layer->output->data[j];
+                    }
+                    first = false;
+                } else {
+                    Layer *prevLayer = NULL;
+                    float *prevDelta = NULL;
+                    for (int ll = l + 1; ll < model->layer_count - 1; ll++) {
+                        if (model->layers[ll]->name != Activation) {
+                            prevLayer = model->layers[ll];
+                            prevDelta = delta[ll];
+                            break;
+                        }
+                    }
+
+                    for (size_t j = 0; j < layer->outputSize; j++) {
+                        delta[l][j] = 0.0;
+                        for (size_t k = 0; k < prevLayer->outputSize; k++) {
+                            delta[l][j] += prevDelta[k] * prevLayer->weight->data[k][j];
+                        }
+                        delta[l][j] *= layer->output->data[j];
+                    }
+                }
+
+                for (size_t j = 0; j < layer->inputSize; j++) {
+                    for (size_t k = 0; k < layer->outputSize; k++) {
+                        float dw = rate * delta[l][k] * layer->input->data[j];
+                        layer->weight->data[j][k] += dw;
+                    }
+                }
+
+                for (size_t j = 0; j < layer->outputSize; j++) {
+                    float db = delta[l][j] * rate;
+                    layer->bias->data[j] += db;
                 }
             }
-            for (size_t j = 0; j < layer->inputSize; j++)
-            {
-                for (size_t k = 0; k < layer->outputSize; k++)
-                {
-                    float dw = rate * delta[l][k] * layer->input->data[j];
-                    layer->weight->data[j][k] += dw;
-                }
-            }
-            for (size_t j = 0; j < layer->outputSize; j++)
-            {
-                float db = delta[l][j] * rate;
-                layer->bias->data[j] += db;
-            }
-            
         }
-        for (size_t l = 0; l < model->layer_count - 1; l++)
-        {
+
+        for (size_t l = 0; l < model->layer_count; l++) {
             if (delta[l] != NULL) {
                 free(delta[l]);
             }
         }
         free(delta);
-        if(inputs->rows != 1) 
-            print_progress(i, inputs->rows, model_cost(model, inputs->data[i], outputs->data[i]));
+
+        if (inputs->rows != 1) 
+            print_progress(t, inputs->rows, model_cost(model, inputs->data[t], outputs->data[t]));
     }
 }
+
 
 #endif // !ITIMIZER_H
